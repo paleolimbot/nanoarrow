@@ -1,5 +1,6 @@
 
 message(STATUS "Building using CMake version: ${CMAKE_VERSION}")
+cmake_minimum_required(VERSION 3.11)
 
 project(ArrowC)
 
