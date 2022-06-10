@@ -3,3 +3,4 @@ dist
 arrow-hpp
 .DS_Store
 CMakeUserPresets.json
+.vscode

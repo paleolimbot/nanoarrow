@@ -1,9 +1,9 @@
 {
     "version": 3,
     "cmakeMinimumRequired": {
-      "major": 3,
-      "minor": 21,
-      "patch": 0
+        "major": 3,
+        "minor": 21,
+        "patch": 0
     },
     "configurePresets": [
         {
@@ -11,9 +11,18 @@
             "displayName": "Default Config",
             "binaryDir": "${sourceDir}/build",
             "installDir": "${sourceDir}/dist",
+            "cacheVariables": {}
+        },
+        {
+            "name": "default-with-tests",
+            "inherits": [
+                "default"
+            ],
+            "displayName": "Default with tests",
             "cacheVariables": {
-
+                "CMAKE_BUILD_TYPE": "Debug",
+                "ARROWC_BUILD_TESTS": "ON"
             }
-          }
+        }
     ]
 }
