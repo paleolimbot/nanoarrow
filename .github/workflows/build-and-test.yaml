@@ -42,12 +42,14 @@ jobs:
       - name: Build Arrow
         if: steps.cache-deps-build.outputs.cache-hit != 'true'
         run: |
-          cd build-deps/arrow
-          cmake . -DARROW_TESTING=ON -DBoost_SOURCE=BUNDLED
+          mkdir build-deps/arrow-build
+          cd build-deps/arrow-build
+          cmake ../arrow/cpp -DARROW_TESTING=ON -DBoost_SOURCE=BUNDLED
           cmake --build .
 
       - name: Install Arrow
         run: |
+          cd build-deps/arrow-build
           cmake --install build-deps/arrow --prefix dist
 
       - name: Build arrowc
