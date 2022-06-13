@@ -32,6 +32,4 @@ int ArrowErrorSet(struct ArrowError* error, const char* fmt, ...) {
   return 0;
 }
 
-const char* ArrowErrorMessage(struct ArrowError* error) {
-  return error->message;
-}
+const char* ArrowErrorMessage(struct ArrowError* error) { return error->message; }
