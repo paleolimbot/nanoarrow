@@ -22,6 +22,9 @@ project(ArrowC)
 
 option(ARROWC_BUILD_TESTS "Build tests" OFF)
 
+option(ARROWC_CODE_COVERAGE "Enable coverage reporting" OFF)
+add_library(coverage_config INTERFACE)
+
 include_directories(src)
 add_library(arrowc src/arrowc/error.c src/arrowc/schema.c)
 
@@ -46,6 +49,12 @@ if (ARROWC_BUILD_TESTS)
 
     add_executable(error_test src/arrowc/error_test.cc)
     add_executable(schema_test src/arrowc/schema_test.cc)
+
+    if (ARROWC_CODE_COVERAGE)
+        target_compile_options(coverage_config INTERFACE -O0 -g --coverage)
+        target_link_options(coverage_config INTERFACE --coverage)
+        target_link_libraries(arrowc coverage_config)
+    endif()
 
     target_link_libraries(error_test arrowc GTest::gtest_main)
     target_link_libraries(schema_test arrowc GTest::gtest_main arrow_shared arrow_testing_shared)
