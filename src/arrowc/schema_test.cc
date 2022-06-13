@@ -26,7 +26,7 @@
 
 using namespace arrow;
 
-TEST(SchemaTest, SchemaAllocate) {
+TEST(SchemaTest, SchemaInit) {
   struct ArrowSchema schema;
   ArrowSchemaInit(2, &schema);
 
