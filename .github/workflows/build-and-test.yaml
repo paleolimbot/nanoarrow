@@ -56,10 +56,21 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -DArrow_DIR=`pwd`/../dist/lib/x86_64-linux-gnu/cmake/arrow -DArrowTesting_DIR=`pwd`/../dist/lib/x86_64-linux-gnu/cmake/arrow -DBUILD_TESTS=ON
+          cmake .. -DCMAKE_BUILD_TYPE=Debug -DArrow_DIR=`pwd`/../dist/lib/x86_64-linux-gnu/cmake/arrow -DArrowTesting_DIR=`pwd`/../dist/lib/x86_64-linux-gnu/cmake/arrow -DARROWC_CODE_COVERAGE=ON -DARROWC_BUILD_TESTS=ON
           cmake --build .
 
       - name: Run tests
         run: |
           cd build
           ctest -T test --output-on-failure .
+
+      - name: Calculate coverage
+        run: |
+          mkdir build/cov
+          cd build/cov
+          gcov -abcfu `find ../CMakeFiles/arrowc.dir/ -name "*.gcno"`
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v2
+        with:
+          directory: build/cov
