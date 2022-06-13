@@ -1,10 +1,9 @@
 
 #include <errno.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "arrowc.h"
-#include "internal/arrowc-util.h"
-#include "stdlib.h"
-#include "string.h"
 
 void ArrowSchemaRelease(struct ArrowSchema* schema) {
   if (schema != NULL && schema->release != NULL) {
@@ -122,7 +121,10 @@ static inline int64_t ArrowSchemaMetadataSize(const char* metadata) {
 
 int ArrowSchemaDeepCopy(struct ArrowSchema* schema, struct ArrowSchema* schema_out) {
   int result;
-  ARROWC_RETURN_NOT_OK(ArrowSchemaAllocate(schema->n_children, schema_out));
+  result = ArrowSchemaAllocate(schema->n_children, schema_out);
+  if (result != ARROWC_OK) {
+    return result;
+  }
 
   if (schema->format != NULL) {
     size_t format_size = strlen(schema->format) + 1;
