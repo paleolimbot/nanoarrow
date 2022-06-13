@@ -1,0 +1,63 @@
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+name: Build and Test
+
+jobs:
+  build-and-run-examples:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -y cmake googletest
+
+      - name: Cache Dependency Builds
+        id: cache-deps-build
+        uses: actions/cache@v3
+        with:
+          path: build-deps
+          key: ${{ runner.os }}-0
+
+      - name: Init build dir
+        if: steps.cache-deps-build.outputs.cache-hit != 'true'
+        run: mkdir build-deps
+
+      - name: Fetch Arrow
+        if: steps.cache-deps-build.outputs.cache-hit != 'true'
+        uses: actions/checkout@v3
+        with:
+          repository: apache/arrow
+          ref: apache-arrow-8.0.0
+          path: build-deps/arrow
+          fetch-depth: 0
+
+      - name: Build Arrow
+        if: steps.cache-deps-build.outputs.cache-hit != 'true'
+        run: |
+          cd build-deps/arrow
+          cmake . -DARROW_TESTING=ON -DBoost_SOURCE=BUNDLED
+          cmake --build .
+
+      - name: Install Arrow
+        run: |
+          cmake --install build-deps/arrow --prefix dist
+
+      - name: Build arrowc
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DArrow_DIR=`pwd`/../dist/lib/x86_64-linux-gnu/cmake/arrow -DArrowTesting_DIR=`pwd`/../dist/lib/x86_64-linux-gnu/cmake/arrow -DBUILD_TESTS=ON
+          cmake --build .
+
+      - name: Run tests
+        run: |
+          cd build
+          ctest -T test --output-on-failure .
