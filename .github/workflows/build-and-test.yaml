@@ -33,6 +33,7 @@ jobs:
       - name: Build googletest
         if: steps.cache-deps-build.outputs.cache-hit != 'true'
         run: |
+          mkdir build-deps/googletest
           cd build-deps/googletest
           cmake /usr/src/googletest
           cmake --build .
