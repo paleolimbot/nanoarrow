@@ -64,7 +64,7 @@ void ArrowSchemaRelease(struct ArrowSchema* schema) {
   }
 }
 
-int ArrowSchemaAllocate(int64_t n_children, struct ArrowSchema* schema) {
+int ArrowSchemaInit(int64_t n_children, struct ArrowSchema* schema) {
   schema->format = NULL;
   schema->name = NULL;
   schema->metadata = NULL;
@@ -185,7 +185,7 @@ ArrowErrorCode ArrowSchemaSetMetadata(struct ArrowSchema* schema, const char* me
 
 int ArrowSchemaDeepCopy(struct ArrowSchema* schema, struct ArrowSchema* schema_out) {
   int result;
-  result = ArrowSchemaAllocate(schema->n_children, schema_out);
+  result = ArrowSchemaInit(schema->n_children, schema_out);
   if (result != ARROWC_OK) {
     return result;
   }

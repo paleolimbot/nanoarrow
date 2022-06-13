@@ -28,7 +28,7 @@ using namespace arrow;
 
 TEST(SchemaTest, SchemaAllocate) {
   struct ArrowSchema schema;
-  ArrowSchemaAllocate(2, &schema);
+  ArrowSchemaInit(2, &schema);
 
   ASSERT_NE(schema.release, nullptr);
   EXPECT_EQ(schema.format, nullptr);

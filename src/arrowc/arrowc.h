@@ -175,7 +175,7 @@ const char* ArrowErrorMessage(struct ArrowError* error);
 /// \brief Initialize the fields of a schema
 ///
 /// Initializes the fields and release callback of schema_out.
-ArrowErrorCode ArrowSchemaAllocate(int64_t n_children, struct ArrowSchema* schema_out);
+ArrowErrorCode ArrowSchemaInit(int64_t n_children, struct ArrowSchema* schema_out);
 
 /// \brief Make a (full) copy of a schema
 ///
@@ -185,19 +185,19 @@ ArrowErrorCode ArrowSchemaDeepCopy(struct ArrowSchema* schema,
 
 /// \brief Copy format into schema->format
 ///
-/// schema must have been allocated using ArrowSchemaAllocate or
+/// schema must have been allocated using ArrowSchemaInit or
 /// ArrowSchemaDeepCopy.
 ArrowErrorCode ArrowSchemaSetFormat(struct ArrowSchema* schema, const char* format);
 
 /// \brief Copy name into schema->name
 ///
-/// schema must have been allocated using ArrowSchemaAllocate or
+/// schema must have been allocated using ArrowSchemaInit or
 /// ArrowSchemaDeepCopy.
 ArrowErrorCode ArrowSchemaSetName(struct ArrowSchema* schema, const char* name);
 
 /// \brief Copy metadata into schema->metadata
 ///
-/// schema must have been allocated using ArrowSchemaAllocate or
+/// schema must have been allocated using ArrowSchemaInit or
 /// ArrowSchemaDeepCopy.
 ArrowErrorCode ArrowSchemaSetMetadata(struct ArrowSchema* schema, const char* metadata);
 
