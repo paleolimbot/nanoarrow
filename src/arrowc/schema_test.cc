@@ -42,6 +42,49 @@ TEST(SchemaTest, SchemaInit) {
   EXPECT_EQ(schema.release, nullptr);
 }
 
+TEST(SchemaTest, SchemaSetFormat) {
+  struct ArrowSchema schema;
+  ArrowSchemaInit(0, &schema);
+
+  EXPECT_EQ(ArrowSchemaSetFormat(&schema, "i"), ARROWC_OK);
+  EXPECT_STREQ(schema.format, "i");
+
+  EXPECT_EQ(ArrowSchemaSetFormat(&schema, nullptr), ARROWC_OK);
+  EXPECT_EQ(schema.format, nullptr);
+
+  schema.release(&schema);
+}
+
+TEST(SchemaTest, SchemaSetName) {
+  struct ArrowSchema schema;
+  ArrowSchemaInit(0, &schema);
+
+  EXPECT_EQ(ArrowSchemaSetName(&schema, "a_name"), ARROWC_OK);
+  EXPECT_STREQ(schema.name, "a_name");
+
+  EXPECT_EQ(ArrowSchemaSetName(&schema, nullptr), ARROWC_OK);
+  EXPECT_EQ(schema.name, nullptr);
+
+  schema.release(&schema);
+}
+
+TEST(SchemaTest, SchemaSetMetadata) {
+  struct ArrowSchema schema;
+  ArrowSchemaInit(0, &schema);
+
+  // (test will only work on little endian)
+  char simple_metadata[] = {'\1', '\0', '\0', '\0', '\3', '\0', '\0', '\0', 'k', 'e',
+                            'y',  '\5', '\0', '\0', '\0', 'v',  'a',  'l',  'u', 'e'};
+
+  EXPECT_EQ(ArrowSchemaSetMetadata(&schema, simple_metadata), ARROWC_OK);
+  EXPECT_EQ(memcmp(schema.metadata, simple_metadata, sizeof(simple_metadata)), 0);
+
+  EXPECT_EQ(ArrowSchemaSetMetadata(&schema, nullptr), ARROWC_OK);
+  EXPECT_EQ(schema.metadata, nullptr);
+
+  schema.release(&schema);
+}
+
 TEST(SchemaTest, SchemaCopySimpleType) {
   struct ArrowSchema schema;
   ARROW_EXPECT_OK(ExportType(*int32(), &schema));
