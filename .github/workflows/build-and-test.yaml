@@ -17,25 +17,36 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt-get install -y cmake libgtest-dev libgmock-dev googletest
+          sudo apt-get install -y cmake
 
       - name: Cache Dependency Builds
         id: cache-deps-build
         uses: actions/cache@v3
         with:
           path: build-deps
-          key: ${{ runner.os }}-1
+          key: ${{ runner.os }}-2
 
       - name: Init build dir
         if: steps.cache-deps-build.outputs.cache-hit != 'true'
         run: mkdir build-deps
+
+      # There seems to be an error passing -DGTest_DIR into Arrow's build
+      # so we just build the same version of it and install
+      - name: Fetch googletest
+        if: steps.cache-deps-build.outputs.cache-hit != 'true'
+        uses: actions/checkout@v3
+        with:
+          repository: google/googletest
+          ref: release-1.11.0
+          path: build-deps/googletest
+          fetch-depth: 0
 
       - name: Build googletest
         if: steps.cache-deps-build.outputs.cache-hit != 'true'
         run: |
           mkdir build-deps/googletest
           cd build-deps/googletest
-          cmake /usr/src/googletest
+          cmake .
           cmake --build .
           cmake --install . --prefix ../../dist
 
@@ -53,7 +64,7 @@ jobs:
         run: |
           mkdir build-deps/arrow-build
           cd build-deps/arrow-build
-          cmake ../arrow/cpp -DGTest_DIR=../../dist/lib/cmake/GTest -DARROW_JSON=ON -DARROW_TESTING=ON -DBoost_SOURCE=BUNDLED
+          cmake ../arrow/cpp -DARROW_JSON=ON -DARROW_TESTING=ON -DBoost_SOURCE=BUNDLED
           cmake --build .
           cmake --install . --prefix ../../dist
 
