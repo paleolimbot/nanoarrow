@@ -56,7 +56,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Debug -DArrow_DIR=`pwd`/../dist/lib/x86_64-linux-gnu/cmake/arrow -DArrowTesting_DIR=`pwd`/../dist/lib/x86_64-linux-gnu/cmake/arrow -DARROWC_CODE_COVERAGE=ON -DARROWC_BUILD_TESTS=ON
+          cmake .. -DCMAKE_BUILD_TYPE=Debug -DArrow_DIR=`pwd`/../dist/lib/cmake/arrow -DArrowTesting_DIR=`pwd`/../dist/lib/cmake/arrow -DARROWC_CODE_COVERAGE=ON -DARROWC_BUILD_TESTS=ON
           cmake --build .
 
       - name: Run tests
