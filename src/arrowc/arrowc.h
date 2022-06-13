@@ -141,6 +141,8 @@ struct ArrowArrayStream {
 #define ARROWC_FREE(ptr) free(ptr)
 #endif
 
+/// }@
+
 /// \defgroup arrowc-errors Error handling primitives
 /// Functions generally return an errno-compatible error code; functions that
 /// need to communicate more verbose error information accept a pointer
@@ -148,23 +150,39 @@ struct ArrowArrayStream {
 /// content of the message is undefined unless an error code has been
 /// returned.
 
+/// \brief Error type containing a UTF-8 encoded message.
 struct ArrowError {
   char message[1024];
 };
 
+/// \brief Return code for success.
 #define ARROWC_OK 0
 
-int ArrowErrorSet(struct ArrowError* error, const char* fmt, ...);
-static inline const char* ArrowErrorMessage(struct ArrowError* error) {
-  return error->message;
-}
+/// \brief Represents an errno-compatible error code
+typedef int ArrowErrorCode;
+
+/// }@
+
+/// \brief Set the contents of an error using printf syntax
+ArrowErrorCode ArrowErrorSet(struct ArrowError* error, const char* fmt, ...);
+
+/// \brief Get the contents of an error
+const char* ArrowErrorMessage(struct ArrowError* error);
 
 /// \defgroup arrowc-schema Schema helpers
 /// These functions allocate, copy, and destroy ArrowSchema structures
 
-int ArrowSchemaAllocate(int64_t n_children, struct ArrowSchema* schema_out);
-void ArrowSchemaRelease(struct ArrowSchema* schema);
-int ArrowSchemaDeepCopy(struct ArrowSchema* schema, struct ArrowSchema* schema_out);
+/// \brief Initialize the fields of a schema
+///
+/// Initializes the fields and release callback of schema_out.
+ArrowErrorCode ArrowSchemaAllocate(int64_t n_children, struct ArrowSchema* schema_out);
+
+/// \brief Make a (full) copy of a schema
+///
+/// Allocates and copies fields of schema into schema_out.
+ArrowErrorCode ArrowSchemaDeepCopy(struct ArrowSchema* schema, struct ArrowSchema* schema_out);
+
+/// }@
 
 #ifdef __cplusplus
 }
