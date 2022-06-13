@@ -65,7 +65,7 @@ int ArrowSchemaAllocate(int64_t n_children, struct ArrowSchema* schema) {
         (struct ArrowSchema**)ARROWC_MALLOC(n_children * sizeof(struct ArrowSchema*));
 
     if (schema->children == NULL) {
-      ArrowSchemaRelease(schema);
+      schema->release(schema);
       return ENOMEM;
     }
 
@@ -76,7 +76,7 @@ int ArrowSchemaAllocate(int64_t n_children, struct ArrowSchema* schema) {
           (struct ArrowSchema*)ARROWC_MALLOC(sizeof(struct ArrowSchema));
 
       if (schema->children[i] == NULL) {
-        ArrowSchemaRelease(schema);
+        schema->release(schema);
         return ENOMEM;
       }
 
@@ -127,24 +127,41 @@ int ArrowSchemaDeepCopy(struct ArrowSchema* schema, struct ArrowSchema* schema_o
   if (schema->format != NULL) {
     size_t format_size = strlen(schema->format) + 1;
     schema_out->format = (const char*)ARROWC_MALLOC(format_size);
+    if (schema_out->format == NULL) {
+      schema_out->release(schema);
+      return ENOMEM;
+    }
+
     memcpy((void*)schema_out->format, schema->format, format_size);
   }
 
   if (schema->name != NULL) {
     size_t name_size = strlen(schema->name) + 1;
     schema_out->name = (const char*)ARROWC_MALLOC(name_size);
+    if (schema_out->name == NULL) {
+      schema_out->release(schema);
+      return ENOMEM;
+    }
+
     memcpy((void*)schema_out->name, schema->name, name_size);
   }
 
   size_t metadata_size = ArrowSchemaMetadataSize(schema->metadata);
   if (metadata_size > 0) {
     schema_out->metadata = (const char*)ARROWC_MALLOC(metadata_size);
+    if (schema_out->metadata == NULL) {
+      return ENOMEM;
+    }
+
     memcpy((void*)schema_out->metadata, schema->metadata, metadata_size);
   }
 
   for (int64_t i = 0; i < schema->n_children; i++) {
-    ARROWC_RETURN_NOT_OK(
-        ArrowSchemaDeepCopy(schema->children[i], schema_out->children[i]));
+    result = ArrowSchemaDeepCopy(schema->children[i], schema_out->children[i]);
+    if (result != ARROWC_OK) {
+      schema_out->release(schema_out);
+      return result;
+    }
   }
 
   if (schema->dictionary != NULL) {
@@ -155,7 +172,11 @@ int ArrowSchemaDeepCopy(struct ArrowSchema* schema, struct ArrowSchema* schema_o
     }
 
     schema_out->dictionary->release = NULL;
-    ARROWC_RETURN_NOT_OK(ArrowSchemaDeepCopy(schema->dictionary, schema_out->dictionary));
+    result = ArrowSchemaDeepCopy(schema->dictionary, schema_out->dictionary);
+    if (result != ARROWC_OK) {
+      schema_out->release(schema_out);
+      return result;
+    }
   }
 
   return ARROWC_OK;
