@@ -49,7 +49,6 @@ jobs:
 
       - name: Install Arrow
         run: |
-          cd build-deps/arrow-build
           cmake --install build-deps/arrow --prefix dist
 
       - name: Build arrowc
