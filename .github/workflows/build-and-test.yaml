@@ -7,7 +7,7 @@ on:
 name: Build and Test
 
 jobs:
-  build-and-run-examples:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
@@ -17,7 +17,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt-get install -y cmake libgtest-dev
+          sudo apt-get install -y cmake libgtest-dev libgmock-dev googletest
 
       - name: Cache Dependency Builds
         id: cache-deps-build
@@ -29,6 +29,14 @@ jobs:
       - name: Init build dir
         if: steps.cache-deps-build.outputs.cache-hit != 'true'
         run: mkdir build-deps
+
+      - name: Build googletest
+        if: steps.cache-deps-build.outputs.cache-hit != 'true'
+        run: |
+          cd build-deps/googletest
+          cmake /usr/src/googletest
+          cmake --build .
+          cmake --install . --prefix ../../dist
 
       - name: Fetch Arrow
         if: steps.cache-deps-build.outputs.cache-hit != 'true'
@@ -44,19 +52,22 @@ jobs:
         run: |
           mkdir build-deps/arrow-build
           cd build-deps/arrow-build
-          cmake ../arrow/cpp -DARROW_JSON=ON -DARROW_TESTING=ON -DBoost_SOURCE=BUNDLED
+          cmake ../arrow/cpp -DGTest_DIR=../../dist/lib/cmake/GTest -DARROW_JSON=ON -DARROW_TESTING=ON -DBoost_SOURCE=BUNDLED
           cmake --build .
+          cmake --install . --prefix ../../dist
 
-      - name: Install Arrow
+      - name: Install Dependencies
         run: |
           cd build-deps/arrow-build
+          cmake --install . --prefix ../../dist
+          cd ../googletest
           cmake --install . --prefix ../../dist
 
       - name: Build arrowc
         run: |
           mkdir build
           cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Debug -DArrow_DIR=`pwd`/../dist/lib/cmake/arrow -DArrowTesting_DIR=`pwd`/../dist/lib/cmake/arrow -DARROWC_CODE_COVERAGE=ON -DARROWC_BUILD_TESTS=ON
+          cmake .. -DCMAKE_BUILD_TYPE=Debug -DGTest_DIR=../../dist/lib/cmake/GTest -DArrow_DIR=`pwd`/../dist/lib/cmake/arrow -DArrowTesting_DIR=`pwd`/../dist/lib/cmake/arrow -DARROWC_CODE_COVERAGE=ON -DARROWC_BUILD_TESTS=ON
           cmake --build .
 
       - name: Run tests
