@@ -39,13 +39,12 @@ if (ARROWC_BUILD_TESTS)
     set(CMAKE_CXX_STANDARD 11)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-    find_package(GTest REQUIRED)
-
     find_package(Arrow REQUIRED)
     message(STATUS "Arrow version: ${ARROW_VERSION}")
     message(STATUS "Arrow SO version: ${ARROW_FULL_SO_VERSION}")
     find_package(ArrowTesting REQUIRED)
 
+    find_package(GTest REQUIRED)
     enable_testing()
 
     add_executable(error_test src/arrowc/error_test.cc)

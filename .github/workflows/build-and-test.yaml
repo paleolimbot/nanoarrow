@@ -17,14 +17,14 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt-get install -y cmake googletest
+          sudo apt-get install -y cmake libgtest-dev
 
       - name: Cache Dependency Builds
         id: cache-deps-build
         uses: actions/cache@v3
         with:
           path: build-deps
-          key: ${{ runner.os }}-0
+          key: ${{ runner.os }}-1
 
       - name: Init build dir
         if: steps.cache-deps-build.outputs.cache-hit != 'true'
