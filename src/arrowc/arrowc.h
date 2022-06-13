@@ -15,7 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#pragma once
+#ifndef ARROWC_H_INCLUDED
+#define ARROWC_H_INCLUDED
 
 #include <stddef.h>
 #include <stdint.h>
@@ -167,4 +168,6 @@ int ArrowSchemaDeepCopy(struct ArrowSchema* schema, struct ArrowSchema* schema_o
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
