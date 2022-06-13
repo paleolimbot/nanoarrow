@@ -44,7 +44,7 @@ jobs:
         run: |
           mkdir build-deps/arrow-build
           cd build-deps/arrow-build
-          cmake ../arrow/cpp -ARROW_JSON-ON -DARROW_TESTING=ON -DBoost_SOURCE=BUNDLED
+          cmake ../arrow/cpp -ARROW_JSON=ON -DARROW_TESTING=ON -DBoost_SOURCE=BUNDLED
           cmake --build .
 
       - name: Install Arrow
