@@ -177,10 +177,20 @@ const char* ArrowErrorMessage(struct ArrowError* error);
 /// Initializes the fields and release callback of schema_out.
 ArrowErrorCode ArrowSchemaAllocate(int64_t n_children, struct ArrowSchema* schema_out);
 
+/// \brief Copy name into schema->name
+ArrowErrorCode ArrowSchemaSetName(struct ArrowSchema* schema, const char* name);
+
+/// \brief Copy format into schema->format
+ArrowErrorCode ArrowSchemaSetFormat(struct ArrowSchema* schema, const char* format);
+
+/// \brief Copy metadata into schema->metadata
+ArrowErrorCode ArrowSchemaSetMetadata(struct ArrowSchema* schema, const char* metadata);
+
 /// \brief Make a (full) copy of a schema
 ///
 /// Allocates and copies fields of schema into schema_out.
-ArrowErrorCode ArrowSchemaDeepCopy(struct ArrowSchema* schema, struct ArrowSchema* schema_out);
+ArrowErrorCode ArrowSchemaDeepCopy(struct ArrowSchema* schema,
+                                   struct ArrowSchema* schema_out);
 
 /// }@
 

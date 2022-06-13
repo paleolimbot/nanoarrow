@@ -135,6 +135,54 @@ static inline int64_t ArrowSchemaMetadataSize(const char* metadata) {
   return pos;
 }
 
+ArrowErrorCode ArrowSchemaSetFormat(struct ArrowSchema* schema, const char* format) {
+  if (format != NULL) {
+    size_t format_size = strlen(format) + 1;
+    schema->format = (const char*)ARROWC_MALLOC(format_size);
+    if (schema->format == NULL) {
+      return ENOMEM;
+    }
+
+    memcpy((void*)schema->format, format, format_size);
+  } else {
+    schema->format = NULL;
+  }
+
+  return ARROWC_OK;
+}
+
+ArrowErrorCode ArrowSchemaSetName(struct ArrowSchema* schema, const char* name) {
+  if (name != NULL) {
+    size_t name_size = strlen(name) + 1;
+    schema->name = (const char*)ARROWC_MALLOC(name_size);
+    if (schema->name == NULL) {
+      return ENOMEM;
+    }
+
+    memcpy((void*)schema->name, name, name_size);
+  } else {
+    schema->name = NULL;
+  }
+
+  return ARROWC_OK;
+}
+
+ArrowErrorCode ArrowSchemaSetMetadata(struct ArrowSchema* schema, const char* metadata) {
+  if (metadata != NULL) {
+    size_t metadata_size = ArrowSchemaMetadataSize(metadata);
+    schema->metadata = (const char*)ARROWC_MALLOC(metadata_size);
+    if (schema->metadata == NULL) {
+      return ENOMEM;
+    }
+
+    memcpy((void*)schema->metadata, metadata, metadata_size);
+  } else {
+    schema->metadata = NULL;
+  }
+
+  return ARROWC_OK;
+}
+
 int ArrowSchemaDeepCopy(struct ArrowSchema* schema, struct ArrowSchema* schema_out) {
   int result;
   result = ArrowSchemaAllocate(schema->n_children, schema_out);
@@ -142,36 +190,22 @@ int ArrowSchemaDeepCopy(struct ArrowSchema* schema, struct ArrowSchema* schema_o
     return result;
   }
 
-  if (schema->format != NULL) {
-    size_t format_size = strlen(schema->format) + 1;
-    schema_out->format = (const char*)ARROWC_MALLOC(format_size);
-    if (schema_out->format == NULL) {
-      schema_out->release(schema);
-      return ENOMEM;
-    }
-
-    memcpy((void*)schema_out->format, schema->format, format_size);
+  result = ArrowSchemaSetFormat(schema_out, schema->format);
+  if (result != ARROWC_OK) {
+    schema_out->release(schema_out);
+    return result;
   }
 
-  if (schema->name != NULL) {
-    size_t name_size = strlen(schema->name) + 1;
-    schema_out->name = (const char*)ARROWC_MALLOC(name_size);
-    if (schema_out->name == NULL) {
-      schema_out->release(schema);
-      return ENOMEM;
-    }
-
-    memcpy((void*)schema_out->name, schema->name, name_size);
+  result = ArrowSchemaSetName(schema_out, schema->name);
+  if (result != ARROWC_OK) {
+    schema_out->release(schema_out);
+    return result;
   }
 
-  size_t metadata_size = ArrowSchemaMetadataSize(schema->metadata);
-  if (metadata_size > 0) {
-    schema_out->metadata = (const char*)ARROWC_MALLOC(metadata_size);
-    if (schema_out->metadata == NULL) {
-      return ENOMEM;
-    }
-
-    memcpy((void*)schema_out->metadata, schema->metadata, metadata_size);
+  result = ArrowSchemaSetMetadata(schema_out, schema->metadata);
+  if (result != ARROWC_OK) {
+    schema_out->release(schema_out);
+    return result;
   }
 
   for (int64_t i = 0; i < schema->n_children; i++) {
@@ -186,6 +220,7 @@ int ArrowSchemaDeepCopy(struct ArrowSchema* schema, struct ArrowSchema* schema_o
     schema_out->dictionary =
         (struct ArrowSchema*)ARROWC_MALLOC(sizeof(struct ArrowSchema));
     if (schema_out->dictionary == NULL) {
+      schema_out->release(schema_out);
       return ENOMEM;
     }
 
