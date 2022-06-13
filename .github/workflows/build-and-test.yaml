@@ -88,9 +88,10 @@ jobs:
 
       - name: Calculate coverage
         run: |
+          SOURCE_PREFIX=`pwd`
           mkdir build/cov
           cd build/cov
-          gcov -abcfu `find ../CMakeFiles/arrowc.dir/ -name "*.gcno"`
+          gcov -abcfu --source-prefix=$SOURCE_PREFIX `find ../CMakeFiles/arrowc.dir/ -name "*.gcno"`
 
       - name: Upload coverage
         uses: codecov/codecov-action@v2
