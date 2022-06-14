@@ -161,15 +161,82 @@ struct ArrowError {
 /// \brief Represents an errno-compatible error code
 typedef int ArrowErrorCode;
 
-/// }@
-
 /// \brief Set the contents of an error using printf syntax
 ArrowErrorCode ArrowErrorSet(struct ArrowError* error, const char* fmt, ...);
 
 /// \brief Get the contents of an error
 const char* ArrowErrorMessage(struct ArrowError* error);
 
-/// \defgroup arrowc-schema Schema helpers
+/// }@
+
+/// \defgroup arrowc-utils Utility data structures
+
+/// \brief An non-owning view of a string
+struct ArrowStringView {
+  /// \brief A pointer to the start of the string
+  ///
+  /// If n_bytes is 0, this value may be NULL.
+  const char* data;
+
+  /// \brief The size of the string in bytes,
+  ///
+  /// (Not including the null terminator.)
+  int64_t n_bytes;
+};
+
+/// \brief Arrow type enumerator
+enum ArrowType {
+    ARROWC_TYPE_NA,
+    ARROWC_TYPE_BOOL,
+    ARROWC_TYPE_UINT8,
+    ARROWC_TYPE_INT8,
+    ARROWC_TYPE_UINT16,
+    ARROWC_TYPE_INT16,
+    ARROWC_TYPE_UINT32,
+    ARROWC_TYPE_INT32,
+    ARROWC_TYPE_UINT64,
+    ARROWC_TYPE_INT64,
+    ARROWC_TYPE_HALF_FLOAT,
+    ARROWC_TYPE_FLOAT,
+    ARROWC_TYPE_DOUBLE,
+    ARROWC_TYPE_STRING,
+    ARROWC_TYPE_BINARY,
+    ARROWC_TYPE_FIXED_SIZE_BINARY,
+    ARROWC_TYPE_DATE32,
+    ARROWC_TYPE_DATE64,
+    ARROWC_TYPE_TIMESTAMP,
+    ARROWC_TYPE_TIME32,
+    ARROWC_TYPE_TIME64,
+    ARROWC_TYPE_INTERVAL_MONTHS,
+    ARROWC_TYPE_INTERVAL_DAY_TIME,
+    ARROWC_TYPE_DECIMAL128,
+    ARROWC_TYPE_DECIMAL256,
+    ARROWC_TYPE_LIST,
+    ARROWC_TYPE_STRUCT,
+    ARROWC_TYPE_SPARSE_UNION,
+    ARROWC_TYPE_DENSE_UNION,
+    ARROWC_TYPE_DICTIONARY,
+    ARROWC_TYPE_MAP,
+    ARROWC_TYPE_EXTENSION,
+    ARROWC_TYPE_FIXED_SIZE_LIST,
+    ARROWC_TYPE_DURATION,
+    ARROWC_TYPE_LARGE_STRING,
+    ARROWC_TYPE_LARGE_BINARY,
+    ARROWC_TYPE_LARGE_LIST,
+    ARROWC_TYPE_INTERVAL_MONTH_DAY_NANO
+};
+
+/// \brief Arrow time unit enumerator
+enum ArrowTimeUnit {
+  ARROWC_TIME_UNIT_SECOND = 0,
+  ARROWC_TIME_UNIT_MILLI = 1,
+  ARROWC_TIME_UNIT_MICRO = 2,
+  ARROWC_TIME_UNIT_NANO = 3
+};
+
+/// }@
+
+/// \defgroup arrowc-schema Schema producer helpers
 /// These functions allocate, copy, and destroy ArrowSchema structures
 
 /// \brief Initialize the fields of a schema
@@ -200,6 +267,84 @@ ArrowErrorCode ArrowSchemaSetName(struct ArrowSchema* schema, const char* name);
 /// schema must have been allocated using ArrowSchemaInit or
 /// ArrowSchemaDeepCopy.
 ArrowErrorCode ArrowSchemaSetMetadata(struct ArrowSchema* schema, const char* metadata);
+
+/// }@
+
+/// \defgroup arrowc-schema-view Schema consumer helpers
+
+/// \brief A non-owning view of a parsed ArrowSchema
+///
+/// Contains more readily extractable values than a raw ArrowSchema.
+/// Clients can stack or statically allocate this structure but are
+/// encouraged to use the provided getters to ensure forward
+/// compatiblity.
+struct ArrowSchemaView {
+  /// A pointer to the schema represented by this view
+  struct ArrowSchema* schema;
+
+  /// \brief The data type represented by the schema
+  ///
+  /// This value may be ARROWC_TYPE_DICTIONARY if the schema has a
+  /// non-null dictionary member; this value may be ARROWC_TYPE_EXTENSION
+  /// if the schema has the ARROW:extension:name metadata field set.
+  /// Datetime types are valid values.
+  enum ArrowType data_type;
+
+  /// \brief The storage data type represented by the schema
+  ///
+  /// This value will never be ARROWC_TYPE_DICTIONARY, ARROWC_TYPE_EXTENSION
+  /// or any datetime type. This value represents only the type required to
+  /// interpret the buffers in the array.
+  enum ArrowType storage_data_type;
+
+  /// \brief The expected number of buffers in a paired ArrowArray
+  int64_t n_buffers;
+
+  /// \brief The logical type for each buffer
+  ///
+  /// This value is encoded using the ArrowType enumerator; however,
+  /// only the ARROWC_TYPE_BOOLEAN (representing a validity bitmap) and
+  /// types represented by a fixed-size primitive layout are valid values.
+  enum ArrowType buffer_type[3];
+
+  /// \brief The expected number of bytes occupied by each buffer
+  ///
+  /// This number represents the number of bytes accessible in each
+  /// buffer. For the validity buffer, this represents the accessible
+  /// size if the validity buffer is non-null.
+  int64_t buffer_size_bytes[3];
+
+  /// \brief Format fixed size parameter
+  ///
+  /// This value is set when parsing a fixed-size binary or fixed-size
+  /// list schema; this value is undefined for other types.
+  int64_t fixed_size;
+
+  /// \brief Format time unit parameter
+  ///
+  /// This value is set when parsing a date/time type. The value is
+  /// undefined for other types.
+  enum ArrowTimeUnit time_unit;
+
+  /// \brief Format timezone parameter
+  ///
+  /// This value is set when parsing a timestamp type and represents
+  /// the timezone format parameter. The ArrowStrintgView points to
+  /// data within the schema and the value is undefined for other types.
+  struct ArrowStringView timezone;
+
+  /// \brief Union type ids parameter
+  ///
+  /// This value is set when parsing a union type and represents
+  /// type ids parameter. The ArrowStrintgView points to
+  /// data within the schema and the value is undefined for other types.
+  struct ArrowStringView union_type_ids;
+};
+
+/// \brief Initialize an ArrowSchemaView
+ArrowErrorCode ArrowSchemaViewInit(struct ArrowSchemaView* schema_view,
+                                   struct ArrowSchema* schema,
+                                   struct ArrowError* error);
 
 /// }@
 

@@ -26,7 +26,11 @@ option(ARROWC_CODE_COVERAGE "Enable coverage reporting" OFF)
 add_library(coverage_config INTERFACE)
 
 include_directories(src)
-add_library(arrowc src/arrowc/error.c src/arrowc/schema.c)
+add_library(
+    arrowc
+    src/arrowc/error.c
+    src/arrowc/schema.c
+    src/arrowc/schema_view.c)
 
 install(TARGETS arrowc DESTINATION lib)
 install(DIRECTORY src/ DESTINATION include FILES_MATCHING PATTERN "*.h")
@@ -49,6 +53,7 @@ if (ARROWC_BUILD_TESTS)
 
     add_executable(error_test src/arrowc/error_test.cc)
     add_executable(schema_test src/arrowc/schema_test.cc)
+    add_executable(schema_view_test src/arrowc/schema_view_test.cc)
 
     if (ARROWC_CODE_COVERAGE)
         target_compile_options(coverage_config INTERFACE -O0 -g --coverage)
@@ -58,9 +63,11 @@ if (ARROWC_BUILD_TESTS)
 
     target_link_libraries(error_test arrowc GTest::gtest_main)
     target_link_libraries(schema_test arrowc GTest::gtest_main arrow_shared arrow_testing_shared)
+    target_link_libraries(schema_view_test arrowc GTest::gtest_main arrow_shared arrow_testing_shared)
 
     include(GoogleTest)
     gtest_discover_tests(error_test)
     gtest_discover_tests(schema_test)
+    gtest_discover_tests(schema_view_test)
 
 endif()
