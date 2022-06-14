@@ -188,6 +188,87 @@ TEST(SchemaViewTest, SchemaViewInitBinaryAndString) {
   schema.release(&schema);
 }
 
+TEST(SchemaViewTest, SchemaViewInitTimeDate) {
+  struct ArrowSchema schema;
+  struct ArrowSchemaView schema_view;
+  struct ArrowError error;
+
+  ARROW_EXPECT_OK(ExportType(*date32(), &schema));
+  schema.release(&schema);
+
+  ARROW_EXPECT_OK(ExportType(*date64(), &schema));
+  schema.release(&schema);
+}
+
+TEST(SchemaViewTest, SchemaViewInitTimeTime) {
+  struct ArrowSchema schema;
+  struct ArrowSchemaView schema_view;
+  struct ArrowError error;
+
+  ARROW_EXPECT_OK(ExportType(*time32(TimeUnit::SECOND), &schema));
+  schema.release(&schema);
+
+  ARROW_EXPECT_OK(ExportType(*time32(TimeUnit::MILLI), &schema));
+  schema.release(&schema);
+
+  ARROW_EXPECT_OK(ExportType(*time64(TimeUnit::MICRO), &schema));
+  schema.release(&schema);
+
+  ARROW_EXPECT_OK(ExportType(*time64(TimeUnit::NANO), &schema));
+  schema.release(&schema);
+}
+
+TEST(SchemaViewTest, SchemaViewInitTimeTimestamp) {
+  struct ArrowSchema schema;
+  struct ArrowSchemaView schema_view;
+  struct ArrowError error;
+
+  ARROW_EXPECT_OK(ExportType(*timestamp(TimeUnit::SECOND, "America/Halifax"), &schema));
+  schema.release(&schema);
+
+  ARROW_EXPECT_OK(ExportType(*timestamp(TimeUnit::MILLI, "America/Halifax"), &schema));
+  schema.release(&schema);
+
+  ARROW_EXPECT_OK(ExportType(*timestamp(TimeUnit::MICRO, "America/Halifax"), &schema));
+  schema.release(&schema);
+
+  ARROW_EXPECT_OK(ExportType(*timestamp(TimeUnit::NANO, "America/Halifax"), &schema));
+  schema.release(&schema);
+}
+
+TEST(SchemaViewTest, SchemaViewInitTimeDuration) {
+  struct ArrowSchema schema;
+  struct ArrowSchemaView schema_view;
+  struct ArrowError error;
+
+  ARROW_EXPECT_OK(ExportType(*duration(TimeUnit::SECOND), &schema));
+  schema.release(&schema);
+
+  ARROW_EXPECT_OK(ExportType(*duration(TimeUnit::MILLI), &schema));
+  schema.release(&schema);
+
+  ARROW_EXPECT_OK(ExportType(*duration(TimeUnit::MICRO), &schema));
+  schema.release(&schema);
+
+  ARROW_EXPECT_OK(ExportType(*duration(TimeUnit::NANO), &schema));
+  schema.release(&schema);
+}
+
+TEST(SchemaViewTest, SchemaViewInitTimeInterval) {
+  struct ArrowSchema schema;
+  struct ArrowSchemaView schema_view;
+  struct ArrowError error;
+
+  ARROW_EXPECT_OK(ExportType(*month_interval(), &schema));
+  schema.release(&schema);
+
+  ARROW_EXPECT_OK(ExportType(*day_time_interval(), &schema));
+  schema.release(&schema);
+
+  ARROW_EXPECT_OK(ExportType(*month_day_nano_interval(), &schema));
+  schema.release(&schema);
+}
+
 TEST(SchemaViewTest, SchemaViewInitNestedList) {
   struct ArrowSchema schema;
   struct ArrowSchemaView schema_view;

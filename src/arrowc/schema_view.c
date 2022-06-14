@@ -238,6 +238,167 @@ ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* schema_view
           }
       }
 
+    // date/time types
+    case 't':
+      switch (format[1]) {
+        // date
+        case 'd':
+          switch (format[2]) {
+            case 'D':
+              ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT32);
+              schema_view->data_type = ARROWC_TYPE_DATE32;
+              *format_end = format + 3;
+              return ARROWC_OK;
+            case 'm':
+              ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT64);
+              schema_view->data_type = ARROWC_TYPE_DATE64;
+              *format_end = format + 3;
+              return ARROWC_OK;
+            default:
+              ArrowErrorSet(error, "Expected 'D' or 'm' following 'td' but found '%s'",
+                            format + 2);
+              return EINVAL;
+          }
+
+        // time of day
+        case 't':
+          switch (format[2]) {
+            case 's':
+              ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT32);
+              schema_view->data_type = ARROWC_TYPE_TIME32;
+              schema_view->time_unit = ARROWC_TIME_UNIT_SECOND;
+              *format_end = format + 3;
+              return ARROWC_OK;
+            case 'm':
+              ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT32);
+              schema_view->data_type = ARROWC_TYPE_TIME32;
+              schema_view->time_unit = ARROWC_TIME_UNIT_MILLI;
+              *format_end = format + 3;
+              return ARROWC_OK;
+            case 'u':
+              ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT64);
+              schema_view->data_type = ARROWC_TYPE_TIME64;
+              schema_view->time_unit = ARROWC_TIME_UNIT_MICRO;
+              *format_end = format + 3;
+              return ARROWC_OK;
+            case 'n':
+              ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT64);
+              schema_view->data_type = ARROWC_TYPE_TIME64;
+              schema_view->time_unit = ARROWC_TIME_UNIT_NANO;
+              *format_end = format + 3;
+              return ARROWC_OK;
+            default:
+              ArrowErrorSet(
+                  error, "Expected 's', 'm', 'u', or 'n' following 'tt' bur found '%s'",
+                  format + 2);
+              return EINVAL;
+          }
+
+        // timestamp
+        case 's':
+          switch (format[2]) {
+            case 's':
+              ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT32);
+              schema_view->data_type = ARROWC_TYPE_TIMESTAMP;
+              schema_view->time_unit = ARROWC_TIME_UNIT_SECOND;
+              break;
+            case 'm':
+              ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT32);
+              schema_view->data_type = ARROWC_TYPE_TIMESTAMP;
+              schema_view->time_unit = ARROWC_TIME_UNIT_MILLI;
+              break;
+            case 'u':
+              ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT64);
+              schema_view->data_type = ARROWC_TYPE_TIMESTAMP;
+              schema_view->time_unit = ARROWC_TIME_UNIT_MICRO;
+              break;
+            case 'n':
+              ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT64);
+              schema_view->data_type = ARROWC_TYPE_TIMESTAMP;
+              schema_view->time_unit = ARROWC_TIME_UNIT_NANO;
+              break;
+            default:
+              ArrowErrorSet(
+                  error, "Expected 's', 'm', 'u', or 'n' following 'ts' but found '%s'",
+                  format + 2);
+              return EINVAL;
+          }
+
+          if (format[3] != ':') {
+            ArrowErrorSet(error, "Expected ':' following '%.3s' but found '%s'", format,
+                          format + 3);
+            return EINVAL;
+          }
+
+          schema_view->timezone.data = format + 4;
+          schema_view->timezone.n_bytes = strlen(format + 4);
+          *format_end = format + strlen(format);
+          return ARROWC_OK;
+
+        // duration
+        case 'D':
+          switch (format[2]) {
+            case 's':
+              ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT32);
+              schema_view->data_type = ARROWC_TYPE_DURATION;
+              schema_view->time_unit = ARROWC_TIME_UNIT_SECOND;
+              *format_end = format + 3;
+              return ARROWC_OK;
+            case 'm':
+              ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT32);
+              schema_view->data_type = ARROWC_TYPE_DURATION;
+              schema_view->time_unit = ARROWC_TIME_UNIT_MILLI;
+              *format_end = format + 3;
+              return ARROWC_OK;
+            case 'u':
+              ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT64);
+              schema_view->data_type = ARROWC_TYPE_DURATION;
+              schema_view->time_unit = ARROWC_TIME_UNIT_MICRO;
+              *format_end = format + 3;
+              return ARROWC_OK;
+            case 'n':
+              ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT64);
+              schema_view->data_type = ARROWC_TYPE_DURATION;
+              schema_view->time_unit = ARROWC_TIME_UNIT_NANO;
+              *format_end = format + 3;
+              return ARROWC_OK;
+            default:
+              ArrowErrorSet(error,
+                            "Expected 's', 'm', u', or 'n' following 'tD' but found '%s'",
+                            format + 2);
+              return EINVAL;
+          }
+
+        // interval
+        case 'i':
+          switch (format[2]) {
+            case 'M':
+              ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT32);
+              schema_view->data_type = ARROWC_TYPE_INTERVAL_MONTHS;
+              *format_end = format + 3;
+              return ARROWC_OK;
+            case 'D':
+              ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INTERVAL_DAY_TIME);
+              *format_end = format + 3;
+              return ARROWC_OK;
+            case 'n':
+              ArrowSchemaViewSetPrimitive(schema_view,
+                                          ARROWC_TYPE_INTERVAL_MONTH_DAY_NANO);
+              *format_end = format + 3;
+              return ARROWC_OK;
+            default:
+              ArrowErrorSet(error, "Expected 'M' or 'D' following 'ti' but found '%s'",
+                            format + 2);
+              return EINVAL;
+          }
+
+        default:
+          ArrowErrorSet(
+              error, "Expected 'd', 't', 's', 'D', or 'i' following 't' but found '%s'",
+              format + 1);
+          return EINVAL;
+      }
+
     default:
       ArrowErrorSet(error, "Unknown format: '%s'", format);
       return EINVAL;
