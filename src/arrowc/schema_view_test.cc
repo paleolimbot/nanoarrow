@@ -18,7 +18,6 @@
 #include <gtest/gtest.h>
 
 #include <arrow/c/bridge.h>
-#include <arrow/memory_pool.h>
 #include <arrow/testing/gtest_util.h>
 
 #include "arrowc/arrowc.h"
