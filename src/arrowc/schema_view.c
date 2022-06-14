@@ -148,10 +148,100 @@ ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* schema_view
       schema_view->data_buffer_id = 2;
       *format_end = format + 1;
       return ARROWC_OK;
-  }
 
-  ArrowErrorSet(error, "Unknown format: '%s'", format);
-  return EINVAL;
+    // nested types
+    case '+':
+      switch (format[1]) {
+        // list has validity + offset or offset
+        case 'l':
+          schema_view->storage_data_type = ARROWC_TYPE_LIST;
+          schema_view->data_type = ARROWC_TYPE_LIST;
+          schema_view->n_buffers = 2;
+          schema_view->validity_buffer_id = 0;
+          schema_view->offset_buffer_id = 1;
+          *format_end = format + 2;
+          return ARROWC_OK;
+
+        // large list has validity + large_offset or large_offset
+        case 'L':
+          schema_view->storage_data_type = ARROWC_TYPE_LARGE_LIST;
+          schema_view->data_type = ARROWC_TYPE_LARGE_LIST;
+          schema_view->n_buffers = 2;
+          schema_view->validity_buffer_id = 0;
+          schema_view->large_offset_buffer_id = 1;
+          *format_end = format + 2;
+          return ARROWC_OK;
+
+        // just validity buffer
+        case 'w':
+          if (format[2] != ':' || format[3] == '\0') {
+            ArrowErrorSet(error, "Expected ':<width>' following '+w'");
+            return EINVAL;
+          }
+
+          schema_view->storage_data_type = ARROWC_TYPE_FIXED_SIZE_LIST;
+          schema_view->data_type = ARROWC_TYPE_FIXED_SIZE_LIST;
+          schema_view->n_buffers = 1;
+          schema_view->validity_buffer_id = 0;
+          schema_view->fixed_size = strtol(format + 3, (char**)format_end, 10);
+          return ARROWC_OK;
+        case 's':
+          schema_view->storage_data_type = ARROWC_TYPE_STRUCT;
+          schema_view->data_type = ARROWC_TYPE_STRUCT;
+          schema_view->n_buffers = 1;
+          schema_view->validity_buffer_id = 0;
+          *format_end = format + 2;
+          return ARROWC_OK;
+        case 'm':
+          schema_view->storage_data_type = ARROWC_TYPE_MAP;
+          schema_view->data_type = ARROWC_TYPE_MAP;
+          schema_view->n_buffers = 1;
+          schema_view->validity_buffer_id = 0;
+          *format_end = format + 2;
+          return ARROWC_OK;
+
+        // unions
+        case 'u':
+          switch (format[2]) {
+            case 'd':
+              schema_view->storage_data_type = ARROWC_TYPE_DENSE_UNION;
+              schema_view->data_type = ARROWC_TYPE_DENSE_UNION;
+              schema_view->n_buffers = 2;
+              schema_view->type_id_buffer_id = 0;
+              schema_view->offset_buffer_id = 1;
+              break;
+            case 's':
+              schema_view->storage_data_type = ARROWC_TYPE_SPARSE_UNION;
+              schema_view->data_type = ARROWC_TYPE_SPARSE_UNION;
+              schema_view->n_buffers = 1;
+              schema_view->type_id_buffer_id = 0;
+              break;
+            default:
+              ArrowErrorSet(error,
+                            "Expected union format string +us:<type_ids> or "
+                            "+ud:<type_ids> but found '%s'",
+                            format);
+              return EINVAL;
+          }
+
+          if (format[3] == ':') {
+            schema_view->union_type_ids.data = format + 4;
+            schema_view->union_type_ids.n_bytes = strlen(format + 4);
+            *format_end = format + strlen(format);
+            return ARROWC_OK;
+          } else {
+            ArrowErrorSet(error,
+                          "Expected union format string +us:<type_ids> or +ud:<type_ids> "
+                          "but found '%s'",
+                          format);
+            return EINVAL;
+          }
+      }
+
+    default:
+      ArrowErrorSet(error, "Unknown format: '%s'", format);
+      return EINVAL;
+  }
 }
 
 ArrowErrorCode ArrowSchemaViewInit(struct ArrowSchemaView* schema_view,
@@ -192,6 +282,7 @@ ArrowErrorCode ArrowSchemaViewInit(struct ArrowSchemaView* schema_view,
   // TODO: check for extension type?
   if (schema->dictionary != NULL) {
     schema_view->data_type = ARROWC_TYPE_DICTIONARY;
+    // TODO: check for valid index type?
   }
 
   return ARROWC_OK;

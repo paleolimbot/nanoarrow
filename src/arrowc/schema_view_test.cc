@@ -66,17 +66,40 @@ TEST(SchemaViewTest, SchemaViewInitErrors) {
   EXPECT_STREQ(ArrowErrorMessage(&error),
                "Error parsing schema->format 'n*': parsed 1/2 characters");
 
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+w"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Expected ':<width>' following '+w'");
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+w:"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Expected ':<width>' following '+w'");
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+u*"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Expected union format string "
+               "+us:<type_ids> or +ud:<type_ids> but found '+u*'");
+
+  // missing colon
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+us"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Expected union format string "
+               "+us:<type_ids> or +ud:<type_ids> but found '+us'");
+
   schema.release(&schema);
 }
 
-#define EXPECT_SIMPLE_TYPE_PARSE_WORKED(arrow_t, arrowc_t) \
-  ARROW_EXPECT_OK(ExportType(*arrow_t, &schema)); \
+#define EXPECT_SIMPLE_TYPE_PARSE_WORKED(arrow_t, arrowc_t)                  \
+  ARROW_EXPECT_OK(ExportType(*arrow_t, &schema));                           \
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK); \
-  EXPECT_EQ(schema_view.n_buffers, 2); \
-  EXPECT_EQ(schema_view.validity_buffer_id, 0); \
-  EXPECT_EQ(schema_view.data_buffer_id, 1); \
-  EXPECT_EQ(schema_view.data_type, arrowc_t); \
-  EXPECT_EQ(schema_view.storage_data_type, arrowc_t); \
+  EXPECT_EQ(schema_view.n_buffers, 2);                                      \
+  EXPECT_EQ(schema_view.validity_buffer_id, 0);                             \
+  EXPECT_EQ(schema_view.data_buffer_id, 1);                                 \
+  EXPECT_EQ(schema_view.data_type, arrowc_t);                               \
+  EXPECT_EQ(schema_view.storage_data_type, arrowc_t);                       \
   schema.release(&schema)
 
 TEST(SchemaViewTest, SchemaViewInitSimple) {
@@ -156,5 +179,89 @@ TEST(SchemaViewTest, SchemaViewInitBinaryAndString) {
   EXPECT_EQ(schema_view.data_buffer_id, 2);
   EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_LARGE_STRING);
   EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_LARGE_STRING);
+  schema.release(&schema);
+}
+
+TEST(SchemaViewTest, SchemaViewInitNestedList) {
+  struct ArrowSchema schema;
+  struct ArrowSchemaView schema_view;
+  struct ArrowError error;
+
+  ARROW_EXPECT_OK(ExportType(*list(int32()), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.n_buffers, 2);
+  EXPECT_EQ(schema_view.validity_buffer_id, 0);
+  EXPECT_EQ(schema_view.offset_buffer_id, 1);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_LIST);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_LIST);
+  schema.release(&schema);
+
+  ARROW_EXPECT_OK(ExportType(*large_list(int32()), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.n_buffers, 2);
+  EXPECT_EQ(schema_view.validity_buffer_id, 0);
+  EXPECT_EQ(schema_view.large_offset_buffer_id, 1);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_LARGE_LIST);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_LARGE_LIST);
+  schema.release(&schema);
+
+  ARROW_EXPECT_OK(ExportType(*fixed_size_list(int32(), 123), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.n_buffers, 1);
+  EXPECT_EQ(schema_view.validity_buffer_id, 0);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_FIXED_SIZE_LIST);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_FIXED_SIZE_LIST);
+  EXPECT_EQ(schema_view.fixed_size, 123);
+  schema.release(&schema);
+}
+
+TEST(SchemaViewTest, SchemaViewInitNestedMapAndStruct) {
+  struct ArrowSchema schema;
+  struct ArrowSchemaView schema_view;
+  struct ArrowError error;
+
+  ARROW_EXPECT_OK(ExportType(*struct_({field("col", int32())}), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.n_buffers, 1);
+  EXPECT_EQ(schema_view.validity_buffer_id, 0);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_STRUCT);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_STRUCT);
+  schema.release(&schema);
+
+  ARROW_EXPECT_OK(ExportType(*map(int32(), int32()), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.n_buffers, 1);
+  EXPECT_EQ(schema_view.validity_buffer_id, 0);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_MAP);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_MAP);
+  schema.release(&schema);
+}
+
+TEST(SchemaViewTest, SchemaViewInitNestedUnion) {
+  struct ArrowSchema schema;
+  struct ArrowSchemaView schema_view;
+  struct ArrowError error;
+
+  ARROW_EXPECT_OK(ExportType(*dense_union({field("col", int32())}), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.n_buffers, 2);
+  EXPECT_EQ(schema_view.type_id_buffer_id, 0);
+  EXPECT_EQ(schema_view.offset_buffer_id, 1);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_DENSE_UNION);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_DENSE_UNION);
+  EXPECT_EQ(
+      std::string(schema_view.union_type_ids.data, schema_view.union_type_ids.n_bytes),
+      std::string("0"));
+  schema.release(&schema);
+
+  ARROW_EXPECT_OK(ExportType(*sparse_union({field("col", int32())}), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.n_buffers, 1);
+  EXPECT_EQ(schema_view.type_id_buffer_id, 0);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_SPARSE_UNION);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_SPARSE_UNION);
+  EXPECT_EQ(
+      std::string(schema_view.union_type_ids.data, schema_view.union_type_ids.n_bytes),
+      std::string("0"));
   schema.release(&schema);
 }
