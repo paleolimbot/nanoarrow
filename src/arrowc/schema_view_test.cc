@@ -194,9 +194,11 @@ TEST(SchemaViewTest, SchemaViewInitTimeDate) {
   struct ArrowError error;
 
   ARROW_EXPECT_OK(ExportType(*date32(), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
   schema.release(&schema);
 
   ARROW_EXPECT_OK(ExportType(*date64(), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
   schema.release(&schema);
 }
 
@@ -206,15 +208,19 @@ TEST(SchemaViewTest, SchemaViewInitTimeTime) {
   struct ArrowError error;
 
   ARROW_EXPECT_OK(ExportType(*time32(TimeUnit::SECOND), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
   schema.release(&schema);
 
   ARROW_EXPECT_OK(ExportType(*time32(TimeUnit::MILLI), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
   schema.release(&schema);
 
   ARROW_EXPECT_OK(ExportType(*time64(TimeUnit::MICRO), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
   schema.release(&schema);
 
   ARROW_EXPECT_OK(ExportType(*time64(TimeUnit::NANO), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
   schema.release(&schema);
 }
 
@@ -224,15 +230,19 @@ TEST(SchemaViewTest, SchemaViewInitTimeTimestamp) {
   struct ArrowError error;
 
   ARROW_EXPECT_OK(ExportType(*timestamp(TimeUnit::SECOND, "America/Halifax"), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
   schema.release(&schema);
 
   ARROW_EXPECT_OK(ExportType(*timestamp(TimeUnit::MILLI, "America/Halifax"), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
   schema.release(&schema);
 
   ARROW_EXPECT_OK(ExportType(*timestamp(TimeUnit::MICRO, "America/Halifax"), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
   schema.release(&schema);
 
   ARROW_EXPECT_OK(ExportType(*timestamp(TimeUnit::NANO, "America/Halifax"), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
   schema.release(&schema);
 }
 
@@ -242,15 +252,19 @@ TEST(SchemaViewTest, SchemaViewInitTimeDuration) {
   struct ArrowError error;
 
   ARROW_EXPECT_OK(ExportType(*duration(TimeUnit::SECOND), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
   schema.release(&schema);
 
   ARROW_EXPECT_OK(ExportType(*duration(TimeUnit::MILLI), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
   schema.release(&schema);
 
   ARROW_EXPECT_OK(ExportType(*duration(TimeUnit::MICRO), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
   schema.release(&schema);
 
   ARROW_EXPECT_OK(ExportType(*duration(TimeUnit::NANO), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
   schema.release(&schema);
 }
 
@@ -260,12 +274,15 @@ TEST(SchemaViewTest, SchemaViewInitTimeInterval) {
   struct ArrowError error;
 
   ARROW_EXPECT_OK(ExportType(*month_interval(), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
   schema.release(&schema);
 
   ARROW_EXPECT_OK(ExportType(*day_time_interval(), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
   schema.release(&schema);
 
   ARROW_EXPECT_OK(ExportType(*month_day_nano_interval(), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
   schema.release(&schema);
 }
 
