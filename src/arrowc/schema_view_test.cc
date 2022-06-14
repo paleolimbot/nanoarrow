@@ -25,10 +25,46 @@
 
 using namespace arrow;
 
-TEST(SchemaViewTest, SchemaViewInit) {
+TEST(SchemaViewTest, SchemaViewInitErrors) {
   struct ArrowSchema schema;
   struct ArrowSchemaView schema_view;
   struct ArrowError error;
 
-  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaInit(0, &schema), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(
+      ArrowErrorMessage(&error),
+      "Error parsing schema->format: Expected a null-terminated string but found NULL");
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, ""), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Expected a string with size > 0");
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "w"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Expected ':<width>' following 'w'");
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "w:"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Expected ':<width>' following 'w'");
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "w:abc"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format 'w:abc': parsed 2/5 characters");
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "*"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Unknown format: '*'");
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "n*"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format 'n*': parsed 1/2 characters");
+
+  schema.release(&schema);
 }

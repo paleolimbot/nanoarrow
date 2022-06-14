@@ -300,19 +300,20 @@ struct ArrowSchemaView {
   /// \brief The expected number of buffers in a paired ArrowArray
   int64_t n_buffers;
 
-  /// \brief The logical type for each buffer
-  ///
-  /// This value is encoded using the ArrowType enumerator; however,
-  /// only the ARROWC_TYPE_BOOLEAN (representing a validity bitmap) and
-  /// types represented by a fixed-size primitive layout are valid values.
-  enum ArrowType buffer_type[3];
+  /// \brief The index of the validity buffer or -1 if one does not exist
+  int64_t validity_buffer_id;
 
-  /// \brief The expected number of bytes occupied by each buffer
-  ///
-  /// This number represents the number of bytes accessible in each
-  /// buffer. For the validity buffer, this represents the accessible
-  /// size if the validity buffer is non-null.
-  int64_t buffer_size_bytes[3];
+  /// \brief The index of the offset buffer or -1 if one does not exist
+  int64_t offset_buffer_id;
+
+  /// \brief The index of the large_offset buffer or -1 if one does not exist
+  int64_t large_offset_buffer_id;
+
+  /// \brief The index of the data buffer or -1 if one does not exist
+  int64_t data_buffer_id;
+
+  /// \brief The index of the type_ids buffer or -1 if one does not exist
+  int64_t type_id_buffer_id;
 
   /// \brief Format fixed size parameter
   ///
