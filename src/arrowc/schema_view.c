@@ -18,7 +18,6 @@
 #include "arrowc.h"
 
 ArrowErrorCode ArrowSchemaViewInit(struct ArrowSchemaView* schema_view,
-                                   struct ArrowSchema* schema,
-                                   struct ArrowError* error) {
+                                   struct ArrowSchema* schema, struct ArrowError* error) {
   return ARROWC_OK;
 }
