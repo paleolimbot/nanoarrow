@@ -68,3 +68,93 @@ TEST(SchemaViewTest, SchemaViewInitErrors) {
 
   schema.release(&schema);
 }
+
+#define EXPECT_SIMPLE_TYPE_PARSE_WORKED(arrow_t, arrowc_t) \
+  ARROW_EXPECT_OK(ExportType(*arrow_t, &schema)); \
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK); \
+  EXPECT_EQ(schema_view.n_buffers, 2); \
+  EXPECT_EQ(schema_view.validity_buffer_id, 0); \
+  EXPECT_EQ(schema_view.data_buffer_id, 1); \
+  EXPECT_EQ(schema_view.data_type, arrowc_t); \
+  EXPECT_EQ(schema_view.storage_data_type, arrowc_t); \
+  schema.release(&schema)
+
+TEST(SchemaViewTest, SchemaViewInitSimple) {
+  struct ArrowSchema schema;
+  struct ArrowSchemaView schema_view;
+  struct ArrowError error;
+
+  ARROW_EXPECT_OK(ExportType(*null(), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.n_buffers, 0);
+  schema.release(&schema);
+
+  EXPECT_SIMPLE_TYPE_PARSE_WORKED(boolean(), ARROWC_TYPE_BOOL);
+  EXPECT_SIMPLE_TYPE_PARSE_WORKED(int8(), ARROWC_TYPE_INT8);
+  EXPECT_SIMPLE_TYPE_PARSE_WORKED(uint8(), ARROWC_TYPE_UINT8);
+  EXPECT_SIMPLE_TYPE_PARSE_WORKED(int16(), ARROWC_TYPE_INT16);
+  EXPECT_SIMPLE_TYPE_PARSE_WORKED(uint16(), ARROWC_TYPE_UINT16);
+  EXPECT_SIMPLE_TYPE_PARSE_WORKED(int32(), ARROWC_TYPE_INT32);
+  EXPECT_SIMPLE_TYPE_PARSE_WORKED(uint32(), ARROWC_TYPE_UINT32);
+  EXPECT_SIMPLE_TYPE_PARSE_WORKED(int64(), ARROWC_TYPE_INT64);
+  EXPECT_SIMPLE_TYPE_PARSE_WORKED(uint64(), ARROWC_TYPE_UINT64);
+  EXPECT_SIMPLE_TYPE_PARSE_WORKED(float16(), ARROWC_TYPE_HALF_FLOAT);
+  EXPECT_SIMPLE_TYPE_PARSE_WORKED(float64(), ARROWC_TYPE_DOUBLE);
+  EXPECT_SIMPLE_TYPE_PARSE_WORKED(float32(), ARROWC_TYPE_FLOAT);
+}
+
+TEST(SchemaViewTest, SchemaViewInitBinaryAndString) {
+  struct ArrowSchema schema;
+  struct ArrowSchemaView schema_view;
+  struct ArrowError error;
+
+  ARROW_EXPECT_OK(ExportType(*fixed_size_binary(123), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.n_buffers, 2);
+  EXPECT_EQ(schema_view.validity_buffer_id, 0);
+  EXPECT_EQ(schema_view.data_buffer_id, 1);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_FIXED_SIZE_BINARY);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_FIXED_SIZE_BINARY);
+  EXPECT_EQ(schema_view.fixed_size, 123);
+  schema.release(&schema);
+
+  ARROW_EXPECT_OK(ExportType(*utf8(), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.n_buffers, 3);
+  EXPECT_EQ(schema_view.validity_buffer_id, 0);
+  EXPECT_EQ(schema_view.offset_buffer_id, 1);
+  EXPECT_EQ(schema_view.data_buffer_id, 2);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_STRING);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_STRING);
+  schema.release(&schema);
+
+  ARROW_EXPECT_OK(ExportType(*binary(), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.n_buffers, 3);
+  EXPECT_EQ(schema_view.validity_buffer_id, 0);
+  EXPECT_EQ(schema_view.offset_buffer_id, 1);
+  EXPECT_EQ(schema_view.data_buffer_id, 2);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_BINARY);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_BINARY);
+  schema.release(&schema);
+
+  ARROW_EXPECT_OK(ExportType(*large_binary(), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.n_buffers, 3);
+  EXPECT_EQ(schema_view.validity_buffer_id, 0);
+  EXPECT_EQ(schema_view.large_offset_buffer_id, 1);
+  EXPECT_EQ(schema_view.data_buffer_id, 2);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_LARGE_BINARY);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_LARGE_BINARY);
+  schema.release(&schema);
+
+  ARROW_EXPECT_OK(ExportType(*large_utf8(), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.n_buffers, 3);
+  EXPECT_EQ(schema_view.validity_buffer_id, 0);
+  EXPECT_EQ(schema_view.large_offset_buffer_id, 1);
+  EXPECT_EQ(schema_view.data_buffer_id, 2);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_LARGE_STRING);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_LARGE_STRING);
+  schema.release(&schema);
+}

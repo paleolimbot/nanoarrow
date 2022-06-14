@@ -96,6 +96,7 @@ ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* schema_view
 
     // validity + data
     case 'w':
+      schema_view->data_type = ARROWC_TYPE_FIXED_SIZE_BINARY;
       schema_view->storage_data_type = ARROWC_TYPE_FIXED_SIZE_BINARY;
       if (format[1] != ':' || format[2] == '\0') {
         ArrowErrorSet(error, "Expected ':<width>' following 'w'");
@@ -110,6 +111,7 @@ ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* schema_view
 
     // validity + offset + data
     case 'z':
+      schema_view->data_type = ARROWC_TYPE_BINARY;
       schema_view->storage_data_type = ARROWC_TYPE_BINARY;
       schema_view->n_buffers = 3;
       schema_view->validity_buffer_id = 0;
@@ -118,6 +120,7 @@ ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* schema_view
       *format_end = format + 1;
       return ARROWC_OK;
     case 'u':
+      schema_view->data_type = ARROWC_TYPE_STRING;
       schema_view->storage_data_type = ARROWC_TYPE_STRING;
       schema_view->n_buffers = 3;
       schema_view->validity_buffer_id = 0;
@@ -128,6 +131,7 @@ ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* schema_view
 
     // validity + large_offset + data
     case 'Z':
+      schema_view->data_type = ARROWC_TYPE_LARGE_BINARY;
       schema_view->storage_data_type = ARROWC_TYPE_LARGE_BINARY;
       schema_view->n_buffers = 3;
       schema_view->validity_buffer_id = 0;
@@ -136,6 +140,7 @@ ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* schema_view
       *format_end = format + 1;
       return ARROWC_OK;
     case 'U':
+      schema_view->data_type = ARROWC_TYPE_LARGE_STRING;
       schema_view->storage_data_type = ARROWC_TYPE_LARGE_STRING;
       schema_view->n_buffers = 3;
       schema_view->validity_buffer_id = 0;
