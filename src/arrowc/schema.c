@@ -136,6 +136,10 @@ static inline int64_t ArrowSchemaMetadataSize(const char* metadata) {
 }
 
 ArrowErrorCode ArrowSchemaSetFormat(struct ArrowSchema* schema, const char* format) {
+  if (schema->format != NULL) {
+    ARROWC_FREE(schema->format);
+  }
+
   if (format != NULL) {
     size_t format_size = strlen(format) + 1;
     schema->format = (const char*)ARROWC_MALLOC(format_size);
@@ -152,6 +156,10 @@ ArrowErrorCode ArrowSchemaSetFormat(struct ArrowSchema* schema, const char* form
 }
 
 ArrowErrorCode ArrowSchemaSetName(struct ArrowSchema* schema, const char* name) {
+  if (schema->name != NULL) {
+    ARROWC_FREE(schema->name);
+  }
+
   if (name != NULL) {
     size_t name_size = strlen(name) + 1;
     schema->name = (const char*)ARROWC_MALLOC(name_size);
@@ -168,6 +176,10 @@ ArrowErrorCode ArrowSchemaSetName(struct ArrowSchema* schema, const char* name) 
 }
 
 ArrowErrorCode ArrowSchemaSetMetadata(struct ArrowSchema* schema, const char* metadata) {
+  if (schema->metadata != NULL) {
+    ARROWC_FREE(schema->metadata);
+  }
+
   if (metadata != NULL) {
     size_t metadata_size = ArrowSchemaMetadataSize(metadata);
     schema->metadata = (const char*)ARROWC_MALLOC(metadata_size);
