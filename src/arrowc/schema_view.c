@@ -246,6 +246,16 @@ ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* schema_view
 
 ArrowErrorCode ArrowSchemaViewInit(struct ArrowSchemaView* schema_view,
                                    struct ArrowSchema* schema, struct ArrowError* error) {
+  if (schema == NULL) {
+    ArrowErrorSet(error, "Expected non-NULL schema");
+    return EINVAL;
+  }
+
+  if (schema->release == NULL) {
+    ArrowErrorSet(error, "Expected non-released schema");
+    return EINVAL;
+  }
+
   schema_view->schema = schema;
 
   const char* format = schema->format;

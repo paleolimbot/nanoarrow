@@ -29,6 +29,13 @@ TEST(SchemaViewTest, SchemaViewInitErrors) {
   struct ArrowSchemaView schema_view;
   struct ArrowError error;
 
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, nullptr, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error), "Expected non-NULL schema");
+
+  schema.release = nullptr;
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error), "Expected non-released schema");
+
   ASSERT_EQ(ArrowSchemaInit(0, &schema), ARROWC_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
   EXPECT_STREQ(
