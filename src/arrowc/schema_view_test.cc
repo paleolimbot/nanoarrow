@@ -47,57 +47,6 @@ TEST(SchemaViewTest, SchemaViewInitErrors) {
   EXPECT_STREQ(ArrowErrorMessage(&error),
                "Error parsing schema->format: Expected a string with size > 0");
 
-  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "d"), ARROWC_OK);
-  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
-  EXPECT_STREQ(ArrowErrorMessage(&error),
-               "Error parsing schema->format: Expected ':precision,scale[,bitwidth]' "
-               "following 'd'");
-
-  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "d:"), ARROWC_OK);
-  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
-  EXPECT_STREQ(ArrowErrorMessage(&error),
-               "Error parsing schema->format: Expected ':precision,scale[,bitwidth]' "
-               "following 'd'");
-
-  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "d:5"), ARROWC_OK);
-  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
-  EXPECT_STREQ(ArrowErrorMessage(&error),
-               "Error parsing schema->format: Expected 'precision,scale[,bitwidth]' "
-               "following 'd:'");
-
-  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "d:5,"), ARROWC_OK);
-  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
-  EXPECT_STREQ(ArrowErrorMessage(&error),
-               "Error parsing schema->format: Expected 'scale[,bitwidth]' following "
-               "'d:precision,'");
-
-  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "d:5,6,"), ARROWC_OK);
-  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
-  EXPECT_STREQ(
-      ArrowErrorMessage(&error),
-      "Error parsing schema->format: Expected precision following 'd:precision,scale,'");
-
-  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "d:5,6,127"), ARROWC_OK);
-  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
-  EXPECT_STREQ(ArrowErrorMessage(&error),
-               "Error parsing schema->format: Expected decimal bitwidth of 128 or 256 "
-               "but found 127");
-
-  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "w"), ARROWC_OK);
-  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
-  EXPECT_STREQ(ArrowErrorMessage(&error),
-               "Error parsing schema->format: Expected ':<width>' following 'w'");
-
-  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "w:"), ARROWC_OK);
-  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
-  EXPECT_STREQ(ArrowErrorMessage(&error),
-               "Error parsing schema->format: Expected ':<width>' following 'w'");
-
-  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "w:abc"), ARROWC_OK);
-  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
-  EXPECT_STREQ(ArrowErrorMessage(&error),
-               "Error parsing schema->format 'w:abc': parsed 2/5 characters");
-
   ASSERT_EQ(ArrowSchemaSetFormat(&schema, "*"), ARROWC_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
   EXPECT_STREQ(ArrowErrorMessage(&error),
@@ -107,29 +56,6 @@ TEST(SchemaViewTest, SchemaViewInitErrors) {
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
   EXPECT_STREQ(ArrowErrorMessage(&error),
                "Error parsing schema->format 'n*': parsed 1/2 characters");
-
-  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+w"), ARROWC_OK);
-  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
-  EXPECT_STREQ(ArrowErrorMessage(&error),
-               "Error parsing schema->format: Expected ':<width>' following '+w'");
-
-  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+w:"), ARROWC_OK);
-  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
-  EXPECT_STREQ(ArrowErrorMessage(&error),
-               "Error parsing schema->format: Expected ':<width>' following '+w'");
-
-  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+u*"), ARROWC_OK);
-  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
-  EXPECT_STREQ(ArrowErrorMessage(&error),
-               "Error parsing schema->format: Expected union format string "
-               "+us:<type_ids> or +ud:<type_ids> but found '+u*'");
-
-  // missing colon
-  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+us"), ARROWC_OK);
-  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
-  EXPECT_STREQ(ArrowErrorMessage(&error),
-               "Error parsing schema->format: Expected union format string "
-               "+us:<type_ids> or +ud:<type_ids> but found '+us'");
 
   schema.release(&schema);
 }
@@ -192,6 +118,51 @@ TEST(SchemaViewTest, SchemaViewInitDecimal) {
   schema.release(&schema);
 }
 
+TEST(SchemaViewTest, SchemaViewInitDecimalErrors) {
+  struct ArrowSchema schema;
+  struct ArrowSchemaView schema_view;
+  struct ArrowError error;
+  ASSERT_EQ(ArrowSchemaInit(0, &schema), ARROWC_OK);
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "d"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Expected ':precision,scale[,bitwidth]' "
+               "following 'd'");
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "d:"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Expected ':precision,scale[,bitwidth]' "
+               "following 'd'");
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "d:5"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Expected 'precision,scale[,bitwidth]' "
+               "following 'd:'");
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "d:5,"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Expected 'scale[,bitwidth]' following "
+               "'d:precision,'");
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "d:5,6,"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(
+      ArrowErrorMessage(&error),
+      "Error parsing schema->format: Expected precision following 'd:precision,scale,'");
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "d:5,6,127"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Expected decimal bitwidth of 128 or 256 "
+               "but found 127");
+
+  schema.release(&schema);
+}
+
 TEST(SchemaViewTest, SchemaViewInitBinaryAndString) {
   struct ArrowSchema schema;
   struct ArrowSchemaView schema_view;
@@ -245,6 +216,30 @@ TEST(SchemaViewTest, SchemaViewInitBinaryAndString) {
   EXPECT_EQ(schema_view.data_buffer_id, 2);
   EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_LARGE_STRING);
   EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_LARGE_STRING);
+  schema.release(&schema);
+}
+
+TEST(SchemaViewTest, SchemaViewInitBinaryAndStringErrors) {
+  struct ArrowSchema schema;
+  struct ArrowSchemaView schema_view;
+  struct ArrowError error;
+  ASSERT_EQ(ArrowSchemaInit(0, &schema), ARROWC_OK);
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "w"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Expected ':<width>' following 'w'");
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "w:"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Expected ':<width>' following 'w'");
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "w:abc"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format 'w:abc': parsed 2/5 characters");
+
   schema.release(&schema);
 }
 
@@ -473,6 +468,25 @@ TEST(SchemaViewTest, SchemaViewInitNestedList) {
   schema.release(&schema);
 }
 
+TEST(SchemaViewTest, SchemaViewNestedListErrors) {
+  struct ArrowSchema schema;
+  struct ArrowSchemaView schema_view;
+  struct ArrowError error;
+  ASSERT_EQ(ArrowSchemaInit(0, &schema), ARROWC_OK);
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+w"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Expected ':<width>' following '+w'");
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+w:"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Expected ':<width>' following '+w'");
+
+  schema.release(&schema);
+}
+
 TEST(SchemaViewTest, SchemaViewInitNestedMapAndStruct) {
   struct ArrowSchema schema;
   struct ArrowSchemaView schema_view;
@@ -521,5 +535,27 @@ TEST(SchemaViewTest, SchemaViewInitNestedUnion) {
   EXPECT_EQ(
       std::string(schema_view.union_type_ids.data, schema_view.union_type_ids.n_bytes),
       std::string("0"));
+  schema.release(&schema);
+}
+
+TEST(SchemaViewTest, SchemaViewInitNestedUnionErrors) {
+  struct ArrowSchema schema;
+  struct ArrowSchemaView schema_view;
+  struct ArrowError error;
+  ASSERT_EQ(ArrowSchemaInit(0, &schema), ARROWC_OK);
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+u*"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Expected union format string "
+               "+us:<type_ids> or +ud:<type_ids> but found '+u*'");
+
+  // missing colon
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+us"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Expected union format string "
+               "+us:<type_ids> or +ud:<type_ids> but found '+us'");
+
   schema.release(&schema);
 }
