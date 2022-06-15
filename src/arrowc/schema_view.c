@@ -39,6 +39,10 @@ ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* schema_view
   schema_view->type_id_buffer_id = -1;
   *format_end = format;
 
+  // needed for decimal parsing
+  const char* parse_start;
+  char* parse_end;
+
   switch (format[0]) {
     case 'n':
       schema_view->storage_data_type = ARROWC_TYPE_NA;
@@ -97,25 +101,35 @@ ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* schema_view
     // decimal
     case 'd':
       if (format[1] != ':' || format[2] == '\0') {
-        ArrowErrorSet(
-            error, "Expected ':precision,scale[,bitwidth]' following 'd' but found '%s'",
-            format + 3);
+        ArrowErrorSet(error, "Expected ':precision,scale[,bitwidth]' following 'd'",
+                      format + 3);
         return EINVAL;
       }
 
-      schema_view->decimal_precision = strtol(format + 2, (char**)format_end, 10);
-      if (*format_end[0] != ',') {
-        ArrowErrorSet(
-            error, "Expected ',scale[,bitwidth]' following 'd:<precison>' but found '%s'",
-            *format_end);
+      parse_start = format + 2;
+      schema_view->decimal_precision = strtol(parse_start, &parse_end, 10);
+      if (parse_end == parse_start || parse_end[0] != ',') {
+        ArrowErrorSet(error, "Expected 'precision,scale[,bitwidth]' following 'd:'");
+        return EINVAL;
       }
 
-      schema_view->decimal_scale = strtol(*format_end + 1, (char**)format_end, 10);
-      if (*format_end[0] != ',') {
+      parse_start = parse_end + 1;
+      schema_view->decimal_scale = strtol(parse_start, &parse_end, 10);
+      if (parse_end == parse_start) {
+        ArrowErrorSet(error, "Expected 'scale[,bitwidth]' following 'd:precision,'");
+        return EINVAL;
+      } else if (parse_end[0] != ',') {
         schema_view->decimal_bitwidth = 128;
       } else {
-        schema_view->decimal_bitwidth = strtol(*format_end + 1, (char**)format_end, 10);
+        parse_start = parse_end + 1;
+        schema_view->decimal_bitwidth = strtol(parse_start, &parse_end, 10);
+        if (parse_start == parse_end) {
+          ArrowErrorSet(error, "Expected precision following 'd:precision,scale,'");
+          return EINVAL;
+        }
       }
+
+      *format_end = parse_end;
 
       switch (schema_view->decimal_bitwidth) {
         case 128:

@@ -47,6 +47,42 @@ TEST(SchemaViewTest, SchemaViewInitErrors) {
   EXPECT_STREQ(ArrowErrorMessage(&error),
                "Error parsing schema->format: Expected a string with size > 0");
 
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "d"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Expected ':precision,scale[,bitwidth]' "
+               "following 'd'");
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "d:"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Expected ':precision,scale[,bitwidth]' "
+               "following 'd'");
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "d:5"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Expected 'precision,scale[,bitwidth]' "
+               "following 'd:'");
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "d:5,"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Expected 'scale[,bitwidth]' following "
+               "'d:precision,'");
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "d:5,6,"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(
+      ArrowErrorMessage(&error),
+      "Error parsing schema->format: Expected precision following 'd:precision,scale,'");
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "d:5,6,127"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Expected decimal bitwidth of 128 or 256 "
+               "but found 127");
+
   ASSERT_EQ(ArrowSchemaSetFormat(&schema, "w"), ARROWC_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
   EXPECT_STREQ(ArrowErrorMessage(&error),
