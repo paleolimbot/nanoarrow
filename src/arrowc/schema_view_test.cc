@@ -435,6 +435,56 @@ TEST(SchemaViewTest, SchemaViewInitTimeInterval) {
   schema.release(&schema);
 }
 
+TEST(SchemaViewTest, SchemaViewInitTimeErrors) {
+  struct ArrowSchema schema;
+  struct ArrowSchemaView schema_view;
+  struct ArrowError error;
+  ASSERT_EQ(ArrowSchemaInit(0, &schema), ARROWC_OK);
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "t*"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Expected 'd', 't', 's', 'D', or 'i' "
+               "following 't' but found '*'");
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "td*"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(
+      ArrowErrorMessage(&error),
+      "Error parsing schema->format: Expected 'D' or 'm' following 'td' but found '*'");
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "tt*"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Expected 's', 'm', 'u', or 'n' following "
+               "'tt' bur found '*'");
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "ts*"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Expected 's', 'm', 'u', or 'n' following "
+               "'ts' but found '*'");
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "tD*"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Expected 's', 'm', u', or 'n' following "
+               "'tD' but found '*'");
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "ti*"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Expected 'M', 'D', or 'n' following 'ti' "
+               "but found '*'");
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "tss"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Error parsing schema->format: Expected ':' following 'tss' but found ''");
+
+  schema.release(&schema);
+}
+
 TEST(SchemaViewTest, SchemaViewInitNestedList) {
   struct ArrowSchema schema;
   struct ArrowSchemaView schema_view;

@@ -436,7 +436,8 @@ ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* schema_view
               *format_end = format + 3;
               return ARROWC_OK;
             default:
-              ArrowErrorSet(error, "Expected 'M' or 'D' following 'ti' but found '%s'",
+              ArrowErrorSet(error,
+                            "Expected 'M', 'D', or 'n' following 'ti' but found '%s'",
                             format + 2);
               return EINVAL;
           }
