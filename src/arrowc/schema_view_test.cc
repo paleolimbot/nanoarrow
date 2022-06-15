@@ -195,10 +195,18 @@ TEST(SchemaViewTest, SchemaViewInitTimeDate) {
 
   ARROW_EXPECT_OK(ExportType(*date32(), &schema));
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.validity_buffer_id, 0);
+  EXPECT_EQ(schema_view.data_buffer_id, 1);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_DATE32);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_INT32);
   schema.release(&schema);
 
   ARROW_EXPECT_OK(ExportType(*date64(), &schema));
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.validity_buffer_id, 0);
+  EXPECT_EQ(schema_view.data_buffer_id, 1);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_DATE64);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_INT64);
   schema.release(&schema);
 }
 
@@ -209,18 +217,38 @@ TEST(SchemaViewTest, SchemaViewInitTimeTime) {
 
   ARROW_EXPECT_OK(ExportType(*time32(TimeUnit::SECOND), &schema));
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.validity_buffer_id, 0);
+  EXPECT_EQ(schema_view.data_buffer_id, 1);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_TIME32);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_INT32);
+  EXPECT_EQ(schema_view.time_unit, ARROWC_TIME_UNIT_SECOND);
   schema.release(&schema);
 
   ARROW_EXPECT_OK(ExportType(*time32(TimeUnit::MILLI), &schema));
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.validity_buffer_id, 0);
+  EXPECT_EQ(schema_view.data_buffer_id, 1);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_TIME32);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_INT32);
+  EXPECT_EQ(schema_view.time_unit, ARROWC_TIME_UNIT_MILLI);
   schema.release(&schema);
 
   ARROW_EXPECT_OK(ExportType(*time64(TimeUnit::MICRO), &schema));
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.validity_buffer_id, 0);
+  EXPECT_EQ(schema_view.data_buffer_id, 1);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_TIME64);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_INT64);
+  EXPECT_EQ(schema_view.time_unit, ARROWC_TIME_UNIT_MICRO);
   schema.release(&schema);
 
   ARROW_EXPECT_OK(ExportType(*time64(TimeUnit::NANO), &schema));
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.validity_buffer_id, 0);
+  EXPECT_EQ(schema_view.data_buffer_id, 1);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_TIME64);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_INT64);
+  EXPECT_EQ(schema_view.time_unit, ARROWC_TIME_UNIT_NANO);
   schema.release(&schema);
 }
 
@@ -231,18 +259,38 @@ TEST(SchemaViewTest, SchemaViewInitTimeTimestamp) {
 
   ARROW_EXPECT_OK(ExportType(*timestamp(TimeUnit::SECOND, "America/Halifax"), &schema));
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.validity_buffer_id, 0);
+  EXPECT_EQ(schema_view.data_buffer_id, 1);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_TIMESTAMP);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_INT32);
+  EXPECT_EQ(schema_view.time_unit, ARROWC_TIME_UNIT_SECOND);
   schema.release(&schema);
 
   ARROW_EXPECT_OK(ExportType(*timestamp(TimeUnit::MILLI, "America/Halifax"), &schema));
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.validity_buffer_id, 0);
+  EXPECT_EQ(schema_view.data_buffer_id, 1);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_TIMESTAMP);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_INT32);
+  EXPECT_EQ(schema_view.time_unit, ARROWC_TIME_UNIT_MILLI);
   schema.release(&schema);
 
   ARROW_EXPECT_OK(ExportType(*timestamp(TimeUnit::MICRO, "America/Halifax"), &schema));
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.validity_buffer_id, 0);
+  EXPECT_EQ(schema_view.data_buffer_id, 1);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_TIMESTAMP);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_INT64);
+  EXPECT_EQ(schema_view.time_unit, ARROWC_TIME_UNIT_MICRO);
   schema.release(&schema);
 
   ARROW_EXPECT_OK(ExportType(*timestamp(TimeUnit::NANO, "America/Halifax"), &schema));
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.validity_buffer_id, 0);
+  EXPECT_EQ(schema_view.data_buffer_id, 1);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_TIMESTAMP);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_INT64);
+  EXPECT_EQ(schema_view.time_unit, ARROWC_TIME_UNIT_NANO);
   schema.release(&schema);
 }
 
@@ -253,18 +301,38 @@ TEST(SchemaViewTest, SchemaViewInitTimeDuration) {
 
   ARROW_EXPECT_OK(ExportType(*duration(TimeUnit::SECOND), &schema));
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.validity_buffer_id, 0);
+  EXPECT_EQ(schema_view.data_buffer_id, 1);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_DURATION);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_INT32);
+  EXPECT_EQ(schema_view.time_unit, ARROWC_TIME_UNIT_SECOND);
   schema.release(&schema);
 
   ARROW_EXPECT_OK(ExportType(*duration(TimeUnit::MILLI), &schema));
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.validity_buffer_id, 0);
+  EXPECT_EQ(schema_view.data_buffer_id, 1);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_DURATION);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_INT32);
+  EXPECT_EQ(schema_view.time_unit, ARROWC_TIME_UNIT_MILLI);
   schema.release(&schema);
 
   ARROW_EXPECT_OK(ExportType(*duration(TimeUnit::MICRO), &schema));
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.validity_buffer_id, 0);
+  EXPECT_EQ(schema_view.data_buffer_id, 1);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_DURATION);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_INT64);
+  EXPECT_EQ(schema_view.time_unit, ARROWC_TIME_UNIT_MICRO);
   schema.release(&schema);
 
   ARROW_EXPECT_OK(ExportType(*duration(TimeUnit::NANO), &schema));
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.validity_buffer_id, 0);
+  EXPECT_EQ(schema_view.data_buffer_id, 1);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_DURATION);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_INT64);
+  EXPECT_EQ(schema_view.time_unit, ARROWC_TIME_UNIT_NANO);
   schema.release(&schema);
 }
 
@@ -275,14 +343,26 @@ TEST(SchemaViewTest, SchemaViewInitTimeInterval) {
 
   ARROW_EXPECT_OK(ExportType(*month_interval(), &schema));
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.validity_buffer_id, 0);
+  EXPECT_EQ(schema_view.data_buffer_id, 1);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_INTERVAL_MONTHS);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_INTERVAL_MONTHS);
   schema.release(&schema);
 
   ARROW_EXPECT_OK(ExportType(*day_time_interval(), &schema));
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.validity_buffer_id, 0);
+  EXPECT_EQ(schema_view.data_buffer_id, 1);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_INTERVAL_DAY_TIME);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_INTERVAL_DAY_TIME);
   schema.release(&schema);
 
   ARROW_EXPECT_OK(ExportType(*month_day_nano_interval(), &schema));
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.validity_buffer_id, 0);
+  EXPECT_EQ(schema_view.data_buffer_id, 1);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_INTERVAL_MONTH_DAY_NANO);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_INTERVAL_MONTH_DAY_NANO);
   schema.release(&schema);
 }
 

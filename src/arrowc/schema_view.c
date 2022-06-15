@@ -373,8 +373,7 @@ ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* schema_view
         case 'i':
           switch (format[2]) {
             case 'M':
-              ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT32);
-              schema_view->data_type = ARROWC_TYPE_INTERVAL_MONTHS;
+              ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INTERVAL_MONTHS);
               *format_end = format + 3;
               return ARROWC_OK;
             case 'D':
