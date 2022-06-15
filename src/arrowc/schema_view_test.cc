@@ -106,6 +106,9 @@ TEST(SchemaViewTest, SchemaViewInitDecimal) {
   EXPECT_EQ(schema_view.data_buffer_id, 1);
   EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_DECIMAL128);
   EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_DECIMAL128);
+  EXPECT_EQ(schema_view.decimal_bitwidth, 128);
+  EXPECT_EQ(schema_view.decimal_precision, 5);
+  EXPECT_EQ(schema_view.decimal_scale, 6);
   schema.release(&schema);
 
   ARROW_EXPECT_OK(ExportType(*decimal256(5, 6), &schema));
@@ -115,6 +118,9 @@ TEST(SchemaViewTest, SchemaViewInitDecimal) {
   EXPECT_EQ(schema_view.data_buffer_id, 1);
   EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_DECIMAL256);
   EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_DECIMAL256);
+  EXPECT_EQ(schema_view.decimal_bitwidth, 256);
+  EXPECT_EQ(schema_view.decimal_precision, 5);
+  EXPECT_EQ(schema_view.decimal_scale, 6);
   schema.release(&schema);
 }
 
