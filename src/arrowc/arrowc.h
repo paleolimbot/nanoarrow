@@ -298,28 +298,46 @@ struct ArrowSchemaView {
   enum ArrowType storage_data_type;
 
   /// \brief The expected number of buffers in a paired ArrowArray
-  int64_t n_buffers;
+  int32_t n_buffers;
 
   /// \brief The index of the validity buffer or -1 if one does not exist
-  int64_t validity_buffer_id;
+  int32_t validity_buffer_id;
 
   /// \brief The index of the offset buffer or -1 if one does not exist
-  int64_t offset_buffer_id;
+  int32_t offset_buffer_id;
 
   /// \brief The index of the large_offset buffer or -1 if one does not exist
-  int64_t large_offset_buffer_id;
+  int32_t large_offset_buffer_id;
 
   /// \brief The index of the data buffer or -1 if one does not exist
-  int64_t data_buffer_id;
+  int32_t data_buffer_id;
 
   /// \brief The index of the type_ids buffer or -1 if one does not exist
-  int64_t type_id_buffer_id;
+  int32_t type_id_buffer_id;
 
   /// \brief Format fixed size parameter
   ///
   /// This value is set when parsing a fixed-size binary or fixed-size
   /// list schema; this value is undefined for other types.
-  int64_t fixed_size;
+  int32_t fixed_size;
+
+  /// \brief Decimal bitwidth
+  ///
+  /// This value is set when parsing a decimal type schema;
+  /// this value is undefined for other types.
+  int32_t decimal_bitwidth;
+
+  /// \brief Decimal precision
+  ///
+  /// This value is set when parsing a decimal type schema;
+  /// this value is undefined for other types.
+  int32_t decimal_precision;
+
+  /// \brief Decimal scale
+  ///
+  /// This value is set when parsing a decimal type schema;
+  /// this value is undefined for other types.
+  int32_t decimal_scale;
 
   /// \brief Format time unit parameter
   ///

@@ -94,6 +94,42 @@ ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* schema_view
       *format_end = format + 1;
       return ARROWC_OK;
 
+    // decimal
+    case 'd':
+      if (format[1] != ':' || format[2] == '\0') {
+        ArrowErrorSet(
+            error, "Expected ':precision,scale[,bitwidth]' following 'd' but found '%s'",
+            format + 3);
+        return EINVAL;
+      }
+
+      schema_view->decimal_precision = strtol(format + 2, (char**)format_end, 10);
+      if (*format_end[0] != ',') {
+        ArrowErrorSet(
+            error, "Expected ',scale[,bitwidth]' following 'd:<precison>' but found '%s'",
+            *format_end);
+      }
+
+      schema_view->decimal_scale = strtol(*format_end + 1, (char**)format_end, 10);
+      if (*format_end[0] != ',') {
+        schema_view->decimal_bitwidth = 128;
+      } else {
+        schema_view->decimal_bitwidth = strtol(*format_end + 1, (char**)format_end, 10);
+      }
+
+      switch (schema_view->decimal_bitwidth) {
+        case 128:
+          ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_DECIMAL128);
+          return ARROWC_OK;
+        case 256:
+          ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_DECIMAL256);
+          return ARROWC_OK;
+        default:
+          ArrowErrorSet(error, "Expected decimal bitwidth of 128 or 256 but found %d",
+                        (int)schema_view->decimal_bitwidth);
+          return EINVAL;
+      }
+
     // validity + data
     case 'w':
       schema_view->data_type = ARROWC_TYPE_FIXED_SIZE_BINARY;
