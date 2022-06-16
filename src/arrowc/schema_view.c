@@ -339,7 +339,7 @@ ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* schema_view
               return ARROWC_OK;
             default:
               ArrowErrorSet(
-                  error, "Expected 's', 'm', 'u', or 'n' following 'tt' bur found '%s'",
+                  error, "Expected 's', 'm', 'u', or 'n' following 'tt' but found '%s'",
                   format + 2);
               return EINVAL;
           }
