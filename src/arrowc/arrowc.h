@@ -355,7 +355,7 @@ struct ArrowSchemaView {
   /// \brief Union type ids parameter
   ///
   /// This value is set when parsing a union type and represents
-  /// type ids parameter. The ArrowStrintgView points to
+  /// type ids parameter. The ArrowStringView points to
   /// data within the schema and the value is undefined for other types.
   struct ArrowStringView union_type_ids;
 };
