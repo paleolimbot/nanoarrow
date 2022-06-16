@@ -275,11 +275,15 @@ ArrowErrorCode ArrowSchemaSetName(struct ArrowSchema* schema, const char* name);
 /// ArrowSchemaDeepCopy.
 ArrowErrorCode ArrowSchemaSetMetadata(struct ArrowSchema* schema, const char* metadata);
 
-ArrowErrorCode ArrowSchemaWalkMetadata(
-    const char* metadata,
-    ArrowErrorCode (*callback)(struct ArrowStringView* key, struct ArrowStringView* value,
-                               void* private_data),
-    void* private_data);
+/// \brief Walk key/value pairs in metadata
+///
+/// schema must have been allocated using ArrowSchemaInit or
+/// ArrowSchemaDeepCopy.
+ArrowErrorCode ArrowMetadataWalk(const char* metadata,
+                                 ArrowErrorCode (*callback)(struct ArrowStringView* key,
+                                                            struct ArrowStringView* value,
+                                                            void* private_data),
+                                 void* private_data);
 
 /// }@
 

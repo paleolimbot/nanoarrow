@@ -104,11 +104,11 @@ int ArrowSchemaInit(int64_t n_children, struct ArrowSchema* schema) {
   return ARROWC_OK;
 }
 
-ArrowErrorCode ArrowSchemaWalkMetadata(
-    const char* metadata,
-    ArrowErrorCode (*callback)(struct ArrowStringView* key, struct ArrowStringView* value,
-                               void* private_data),
-    void* private_data) {
+ArrowErrorCode ArrowMetadataWalk(const char* metadata,
+                                 ArrowErrorCode (*callback)(struct ArrowStringView* key,
+                                                            struct ArrowStringView* value,
+                                                            void* private_data),
+                                 void* private_data) {
   if (metadata == NULL) {
     return 0;
   }
@@ -148,21 +148,21 @@ ArrowErrorCode ArrowSchemaWalkMetadata(
   return ARROWC_OK;
 }
 
-static ArrowErrorCode ArrowSchemaMetadataSizeCallback(struct ArrowStringView* key,
-                                                      struct ArrowStringView* value,
-                                                      void* private_data) {
+static ArrowErrorCode ArrowMetadataSizeCallback(struct ArrowStringView* key,
+                                                struct ArrowStringView* value,
+                                                void* private_data) {
   int64_t* size = (int64_t*)private_data;
   *size += sizeof(int32_t) + key->n_bytes + sizeof(int32_t) + value->n_bytes;
   return ARROWC_OK;
 }
 
-static inline int64_t ArrowSchemaMetadataSize(const char* metadata) {
+static inline int64_t ArrowMetadataSize(const char* metadata) {
   if (metadata == NULL) {
     return 0;
   }
 
   int64_t size = sizeof(int32_t);
-  ArrowSchemaWalkMetadata(metadata, &ArrowSchemaMetadataSizeCallback, &size);
+  ArrowMetadataWalk(metadata, &ArrowMetadataSizeCallback, &size);
   return size;
 }
 
@@ -212,7 +212,7 @@ ArrowErrorCode ArrowSchemaSetMetadata(struct ArrowSchema* schema, const char* me
   }
 
   if (metadata != NULL) {
-    size_t metadata_size = ArrowSchemaMetadataSize(metadata);
+    size_t metadata_size = ArrowMetadataSize(metadata);
     schema->metadata = (const char*)ARROWC_MALLOC(metadata_size);
     if (schema->metadata == NULL) {
       return ENOMEM;
