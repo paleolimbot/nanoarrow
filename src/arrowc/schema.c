@@ -161,7 +161,7 @@ static inline int64_t ArrowSchemaMetadataSize(const char* metadata) {
     return 0;
   }
 
-  int64_t size = 4;
+  int64_t size = sizeof(int32_t);
   ArrowSchemaWalkMetadata(metadata, &ArrowSchemaMetadataSizeCallback, &size);
   return size;
 }
