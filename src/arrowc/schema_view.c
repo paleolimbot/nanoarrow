@@ -483,16 +483,16 @@ ArrowErrorCode ArrowSchemaViewValidateChildren(struct ArrowSchemaView* schema_vi
   return ARROWC_OK;
 }
 
-ArrowErrorCode ArrowSchemaViewValidateDictionary(struct ArrowSchemaView* schema_view,
-                                                 struct ArrowError* error) {
+static ArrowErrorCode ArrowSchemaViewValidateDictionary(
+    struct ArrowSchemaView* schema_view, struct ArrowError* error) {
   struct ArrowSchemaView dictionary_schema_view;
   return ArrowSchemaViewInit(&dictionary_schema_view, schema_view->schema->dictionary,
                              error);
 }
 
-ArrowErrorCode ArrowSchemaViewValidate(struct ArrowSchemaView* schema_view,
-                                       enum ArrowType data_type,
-                                       struct ArrowError* error) {
+static ArrowErrorCode ArrowSchemaViewValidate(struct ArrowSchemaView* schema_view,
+                                              enum ArrowType data_type,
+                                              struct ArrowError* error) {
   int result;
 
   switch (data_type) {
