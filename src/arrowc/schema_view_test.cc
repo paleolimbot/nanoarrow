@@ -96,6 +96,20 @@ TEST(SchemaViewTest, SchemaViewInitSimple) {
   EXPECT_SIMPLE_TYPE_PARSE_WORKED(float32(), ARROWC_TYPE_FLOAT);
 }
 
+TEST(SchemaViewTest, SchemaViewInitSimpleErrors) {
+  struct ArrowSchema schema;
+  struct ArrowSchemaView schema_view;
+  struct ArrowError error;
+
+  ASSERT_EQ(ArrowSchemaInit(2, &schema), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "n"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Expected schema with 0 children but found 2 children");
+
+  schema.release(&schema);
+}
+
 TEST(SchemaViewTest, SchemaViewInitDecimal) {
   struct ArrowSchema schema;
   struct ArrowSchemaView schema_view;
@@ -247,6 +261,11 @@ TEST(SchemaViewTest, SchemaViewInitBinaryAndStringErrors) {
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
   EXPECT_STREQ(ArrowErrorMessage(&error),
                "Error parsing schema->format 'w:abc': parsed 2/5 characters");
+
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "w:0"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Expected size > 0 for fixed size binary but found size 0");
 
   schema.release(&schema);
 }
@@ -542,6 +561,11 @@ TEST(SchemaViewTest, SchemaViewNestedListErrors) {
   EXPECT_STREQ(ArrowErrorMessage(&error),
                "Error parsing schema->format: Expected ':<width>' following '+w'");
 
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+w:1"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Expected schema with 1 children but found 0 children");
+
   schema.release(&schema);
 }
 
@@ -564,6 +588,42 @@ TEST(SchemaViewTest, SchemaViewInitNestedMapAndStruct) {
   EXPECT_EQ(schema_view.validity_buffer_id, 0);
   EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_MAP);
   EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_MAP);
+  schema.release(&schema);
+}
+
+TEST(SchemaViewTest, SchemaViewInitNestedMapAndStructErrors) {
+  struct ArrowSchema schema;
+  struct ArrowSchemaView schema_view;
+  struct ArrowError error;
+
+  ASSERT_EQ(ArrowSchemaInit(2, &schema), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+m"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Expected schema with 1 children but found 2 children");
+  schema.release(&schema);
+
+  ASSERT_EQ(ArrowSchemaInit(1, &schema), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+m"), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaInit(0, schema.children[0]), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaSetFormat(schema.children[0], "n"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Expected child of map type to have 2 children but found 0");
+  schema.release(&schema);
+
+  ASSERT_EQ(ArrowSchemaInit(1, &schema), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+m"), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaInit(2, schema.children[0]), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaSetFormat(schema.children[0], "+us:0,1"), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaInit(0, schema.children[0]->children[0]), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaSetFormat(schema.children[0]->children[0], "n"), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaInit(0, schema.children[0]->children[1]), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaSetFormat(schema.children[0]->children[1], "n"), ARROWC_OK);
+
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Expected format of child of map type to be '+s' but found '+us:0,1'");
   schema.release(&schema);
 }
 

@@ -528,7 +528,7 @@ ArrowErrorCode ArrowSchemaViewValidate(struct ArrowSchemaView* schema_view,
 
     case ARROWC_TYPE_FIXED_SIZE_BINARY:
       if (schema_view->fixed_size <= 0) {
-        ArrowErrorSet(error, "Expected fixed size binary with size > 0 but found size %d",
+        ArrowErrorSet(error, "Expected size > 0 for fixed size binary but found size %d",
                       schema_view->fixed_size);
         return EINVAL;
       }
