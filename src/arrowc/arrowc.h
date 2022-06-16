@@ -275,6 +275,12 @@ ArrowErrorCode ArrowSchemaSetName(struct ArrowSchema* schema, const char* name);
 /// ArrowSchemaDeepCopy.
 ArrowErrorCode ArrowSchemaSetMetadata(struct ArrowSchema* schema, const char* metadata);
 
+ArrowErrorCode ArrowSchemaWalkMetadata(
+    const char* metadata,
+    ArrowErrorCode (*callback)(struct ArrowStringView* key, struct ArrowStringView* value,
+                               void* private_data),
+    void* private_data);
+
 /// }@
 
 /// \defgroup arrowc-schema-view Schema consumer helpers
