@@ -29,16 +29,15 @@ static void ArrowSchemaViewSetPrimitive(struct ArrowSchemaView* schema_view,
   schema_view->data_buffer_id = 1;
 }
 
-static ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* schema_view,
-                                                    const char* format,
-                                                    const char** format_end,
-                                                    struct ArrowError* error) {
+static ArrowErrorCode ArrowSchemaViewParse(struct ArrowSchemaView* schema_view,
+                                           const char* format, const char** format_end_out,
+                                           struct ArrowError* error) {
   schema_view->validity_buffer_id = -1;
   schema_view->offset_buffer_id = -1;
   schema_view->offset_buffer_id = -1;
   schema_view->data_buffer_id = -1;
   schema_view->type_id_buffer_id = -1;
-  *format_end = format;
+  *format_end_out = format;
 
   // needed for decimal parsing
   const char* parse_start;
@@ -48,55 +47,55 @@ static ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* sche
     case 'n':
       schema_view->storage_data_type = ARROWC_TYPE_NA;
       schema_view->n_buffers = 0;
-      *format_end = format + 1;
+      *format_end_out = format + 1;
       return ARROWC_OK;
     case 'b':
       ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_BOOL);
-      *format_end = format + 1;
+      *format_end_out = format + 1;
       return ARROWC_OK;
     case 'c':
       ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT8);
-      *format_end = format + 1;
+      *format_end_out = format + 1;
       return ARROWC_OK;
     case 'C':
       ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_UINT8);
-      *format_end = format + 1;
+      *format_end_out = format + 1;
       return ARROWC_OK;
     case 's':
       ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT16);
-      *format_end = format + 1;
+      *format_end_out = format + 1;
       return ARROWC_OK;
     case 'S':
       ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_UINT16);
-      *format_end = format + 1;
+      *format_end_out = format + 1;
       return ARROWC_OK;
     case 'i':
       ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT32);
-      *format_end = format + 1;
+      *format_end_out = format + 1;
       return ARROWC_OK;
     case 'I':
       ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_UINT32);
-      *format_end = format + 1;
+      *format_end_out = format + 1;
       return ARROWC_OK;
     case 'l':
       ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT64);
-      *format_end = format + 1;
+      *format_end_out = format + 1;
       return ARROWC_OK;
     case 'L':
       ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_UINT64);
-      *format_end = format + 1;
+      *format_end_out = format + 1;
       return ARROWC_OK;
     case 'e':
       ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_HALF_FLOAT);
-      *format_end = format + 1;
+      *format_end_out = format + 1;
       return ARROWC_OK;
     case 'f':
       ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_FLOAT);
-      *format_end = format + 1;
+      *format_end_out = format + 1;
       return ARROWC_OK;
     case 'g':
       ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_DOUBLE);
-      *format_end = format + 1;
+      *format_end_out = format + 1;
       return ARROWC_OK;
 
     // decimal
@@ -130,7 +129,7 @@ static ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* sche
         }
       }
 
-      *format_end = parse_end;
+      *format_end_out = parse_end;
 
       switch (schema_view->decimal_bitwidth) {
         case 128:
@@ -157,7 +156,7 @@ static ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* sche
       schema_view->n_buffers = 2;
       schema_view->validity_buffer_id = 0;
       schema_view->data_buffer_id = 1;
-      schema_view->fixed_size = strtol(format + 2, (char**)format_end, 10);
+      schema_view->fixed_size = strtol(format + 2, (char**)format_end_out, 10);
       return ARROWC_OK;
 
     // validity + offset + data
@@ -168,7 +167,7 @@ static ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* sche
       schema_view->validity_buffer_id = 0;
       schema_view->offset_buffer_id = 1;
       schema_view->data_buffer_id = 2;
-      *format_end = format + 1;
+      *format_end_out = format + 1;
       return ARROWC_OK;
     case 'u':
       schema_view->data_type = ARROWC_TYPE_STRING;
@@ -177,7 +176,7 @@ static ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* sche
       schema_view->validity_buffer_id = 0;
       schema_view->offset_buffer_id = 1;
       schema_view->data_buffer_id = 2;
-      *format_end = format + 1;
+      *format_end_out = format + 1;
       return ARROWC_OK;
 
     // validity + large_offset + data
@@ -188,7 +187,7 @@ static ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* sche
       schema_view->validity_buffer_id = 0;
       schema_view->offset_buffer_id = 1;
       schema_view->data_buffer_id = 2;
-      *format_end = format + 1;
+      *format_end_out = format + 1;
       return ARROWC_OK;
     case 'U':
       schema_view->data_type = ARROWC_TYPE_LARGE_STRING;
@@ -197,7 +196,7 @@ static ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* sche
       schema_view->validity_buffer_id = 0;
       schema_view->offset_buffer_id = 1;
       schema_view->data_buffer_id = 2;
-      *format_end = format + 1;
+      *format_end_out = format + 1;
       return ARROWC_OK;
 
     // nested types
@@ -210,7 +209,7 @@ static ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* sche
           schema_view->n_buffers = 2;
           schema_view->validity_buffer_id = 0;
           schema_view->offset_buffer_id = 1;
-          *format_end = format + 2;
+          *format_end_out = format + 2;
           return ARROWC_OK;
 
         // large list has validity + large_offset or large_offset
@@ -220,7 +219,7 @@ static ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* sche
           schema_view->n_buffers = 2;
           schema_view->validity_buffer_id = 0;
           schema_view->offset_buffer_id = 1;
-          *format_end = format + 2;
+          *format_end_out = format + 2;
           return ARROWC_OK;
 
         // just validity buffer
@@ -234,21 +233,21 @@ static ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* sche
           schema_view->data_type = ARROWC_TYPE_FIXED_SIZE_LIST;
           schema_view->n_buffers = 1;
           schema_view->validity_buffer_id = 0;
-          schema_view->fixed_size = strtol(format + 3, (char**)format_end, 10);
+          schema_view->fixed_size = strtol(format + 3, (char**)format_end_out, 10);
           return ARROWC_OK;
         case 's':
           schema_view->storage_data_type = ARROWC_TYPE_STRUCT;
           schema_view->data_type = ARROWC_TYPE_STRUCT;
           schema_view->n_buffers = 1;
           schema_view->validity_buffer_id = 0;
-          *format_end = format + 2;
+          *format_end_out = format + 2;
           return ARROWC_OK;
         case 'm':
           schema_view->storage_data_type = ARROWC_TYPE_MAP;
           schema_view->data_type = ARROWC_TYPE_MAP;
           schema_view->n_buffers = 1;
           schema_view->validity_buffer_id = 0;
-          *format_end = format + 2;
+          *format_end_out = format + 2;
           return ARROWC_OK;
 
         // unions
@@ -278,7 +277,7 @@ static ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* sche
           if (format[3] == ':') {
             schema_view->union_type_ids.data = format + 4;
             schema_view->union_type_ids.n_bytes = strlen(format + 4);
-            *format_end = format + strlen(format);
+            *format_end_out = format + strlen(format);
             return ARROWC_OK;
           } else {
             ArrowErrorSet(error,
@@ -298,12 +297,12 @@ static ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* sche
             case 'D':
               ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT32);
               schema_view->data_type = ARROWC_TYPE_DATE32;
-              *format_end = format + 3;
+              *format_end_out = format + 3;
               return ARROWC_OK;
             case 'm':
               ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT64);
               schema_view->data_type = ARROWC_TYPE_DATE64;
-              *format_end = format + 3;
+              *format_end_out = format + 3;
               return ARROWC_OK;
             default:
               ArrowErrorSet(error, "Expected 'D' or 'm' following 'td' but found '%s'",
@@ -318,25 +317,25 @@ static ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* sche
               ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT32);
               schema_view->data_type = ARROWC_TYPE_TIME32;
               schema_view->time_unit = ARROWC_TIME_UNIT_SECOND;
-              *format_end = format + 3;
+              *format_end_out = format + 3;
               return ARROWC_OK;
             case 'm':
               ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT32);
               schema_view->data_type = ARROWC_TYPE_TIME32;
               schema_view->time_unit = ARROWC_TIME_UNIT_MILLI;
-              *format_end = format + 3;
+              *format_end_out = format + 3;
               return ARROWC_OK;
             case 'u':
               ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT64);
               schema_view->data_type = ARROWC_TYPE_TIME64;
               schema_view->time_unit = ARROWC_TIME_UNIT_MICRO;
-              *format_end = format + 3;
+              *format_end_out = format + 3;
               return ARROWC_OK;
             case 'n':
               ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT64);
               schema_view->data_type = ARROWC_TYPE_TIME64;
               schema_view->time_unit = ARROWC_TIME_UNIT_NANO;
-              *format_end = format + 3;
+              *format_end_out = format + 3;
               return ARROWC_OK;
             default:
               ArrowErrorSet(
@@ -383,7 +382,7 @@ static ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* sche
 
           schema_view->timezone.data = format + 4;
           schema_view->timezone.n_bytes = strlen(format + 4);
-          *format_end = format + strlen(format);
+          *format_end_out = format + strlen(format);
           return ARROWC_OK;
 
         // duration
@@ -393,25 +392,25 @@ static ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* sche
               ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT32);
               schema_view->data_type = ARROWC_TYPE_DURATION;
               schema_view->time_unit = ARROWC_TIME_UNIT_SECOND;
-              *format_end = format + 3;
+              *format_end_out = format + 3;
               return ARROWC_OK;
             case 'm':
               ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT32);
               schema_view->data_type = ARROWC_TYPE_DURATION;
               schema_view->time_unit = ARROWC_TIME_UNIT_MILLI;
-              *format_end = format + 3;
+              *format_end_out = format + 3;
               return ARROWC_OK;
             case 'u':
               ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT64);
               schema_view->data_type = ARROWC_TYPE_DURATION;
               schema_view->time_unit = ARROWC_TIME_UNIT_MICRO;
-              *format_end = format + 3;
+              *format_end_out = format + 3;
               return ARROWC_OK;
             case 'n':
               ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INT64);
               schema_view->data_type = ARROWC_TYPE_DURATION;
               schema_view->time_unit = ARROWC_TIME_UNIT_NANO;
-              *format_end = format + 3;
+              *format_end_out = format + 3;
               return ARROWC_OK;
             default:
               ArrowErrorSet(error,
@@ -425,16 +424,16 @@ static ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* sche
           switch (format[2]) {
             case 'M':
               ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INTERVAL_MONTHS);
-              *format_end = format + 3;
+              *format_end_out = format + 3;
               return ARROWC_OK;
             case 'D':
               ArrowSchemaViewSetPrimitive(schema_view, ARROWC_TYPE_INTERVAL_DAY_TIME);
-              *format_end = format + 3;
+              *format_end_out = format + 3;
               return ARROWC_OK;
             case 'n':
               ArrowSchemaViewSetPrimitive(schema_view,
                                           ARROWC_TYPE_INTERVAL_MONTH_DAY_NANO);
-              *format_end = format + 3;
+              *format_end_out = format + 3;
               return ARROWC_OK;
             default:
               ArrowErrorSet(error,
@@ -454,6 +453,11 @@ static ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* sche
       ArrowErrorSet(error, "Unknown format: '%s'", format);
       return EINVAL;
   }
+}
+
+ArrowErrorCode ArrowSchemaViewValidate(struct ArrowSchemaView* schema_view,
+                                       struct ArrowError* error) {
+  return ARROWC_OK;
 }
 
 ArrowErrorCode ArrowSchemaViewInit(struct ArrowSchemaView* schema_view,
@@ -484,9 +488,8 @@ ArrowErrorCode ArrowSchemaViewInit(struct ArrowSchemaView* schema_view,
     return EINVAL;
   }
 
-  const char* format_end;
-  ArrowErrorCode result =
-      ArrowSchemaViewSetStorageType(schema_view, format, &format_end, error);
+  const char* format_end_out;
+  ArrowErrorCode result = ArrowSchemaViewParse(schema_view, format, &format_end_out, error);
 
   if (result != ARROWC_OK) {
     char child_error[1024];
@@ -495,9 +498,9 @@ ArrowErrorCode ArrowSchemaViewInit(struct ArrowSchemaView* schema_view,
     return result;
   }
 
-  if ((format + format_len) != format_end) {
+  if ((format + format_len) != format_end_out) {
     ArrowErrorSet(error, "Error parsing schema->format '%s': parsed %d/%d characters",
-                  format, (int)(format_end - format), (int)(format_len));
+                  format, (int)(format_end_out - format), (int)(format_len));
     return EINVAL;
   }
 
