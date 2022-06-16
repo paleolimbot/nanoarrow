@@ -185,6 +185,9 @@ struct ArrowStringView {
 };
 
 /// \brief Arrow type enumerator
+///
+/// These names are intended to map to the corresponding arrow::Type::type
+/// enumerator; however, the values are not guaranteed to be transferrable.
 enum ArrowType {
   ARROWC_TYPE_NA,
   ARROWC_TYPE_BOOL,
@@ -227,6 +230,9 @@ enum ArrowType {
 };
 
 /// \brief Arrow time unit enumerator
+///
+/// These names and values map to the corresponding arrow::TimeUnit::type
+/// enumerator.
 enum ArrowTimeUnit {
   ARROWC_TIME_UNIT_SECOND = 0,
   ARROWC_TIME_UNIT_MILLI = 1,
