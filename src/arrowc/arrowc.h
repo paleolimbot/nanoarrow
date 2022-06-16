@@ -187,9 +187,10 @@ struct ArrowStringView {
 /// \brief Arrow type enumerator
 ///
 /// These names are intended to map to the corresponding arrow::Type::type
-/// enumerator; however, the values are not guaranteed to be transferrable.
+/// enumerator; however, the numeric values are specifically not equal
+/// (i.e., do not rely on numeric comparison).
 enum ArrowType {
-  ARROWC_TYPE_NA,
+  ARROWC_TYPE_NA = 1,
   ARROWC_TYPE_BOOL,
   ARROWC_TYPE_UINT8,
   ARROWC_TYPE_INT8,
@@ -321,7 +322,10 @@ struct ArrowSchemaView {
   /// \brief Format fixed size parameter
   ///
   /// This value is set when parsing a fixed-size binary or fixed-size
-  /// list schema; this value is undefined for other types.
+  /// list schema; this value is undefined for other types. For a
+  /// fixed-size binary schema this value is in bytes; for a fixed-size
+  /// list schema this value refers to the number of child elements for
+  /// each element of the parent.
   int32_t fixed_size;
 
   /// \brief Decimal bitwidth
