@@ -463,7 +463,7 @@ TEST(SchemaViewTest, SchemaViewInitTimeErrors) {
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
   EXPECT_STREQ(ArrowErrorMessage(&error),
                "Error parsing schema->format: Expected 's', 'm', 'u', or 'n' following "
-               "'tt' bur found '*'");
+               "'tt' but found '*'");
 
   ASSERT_EQ(ArrowSchemaSetFormat(&schema, "ts*"), ARROWC_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
