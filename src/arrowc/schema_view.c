@@ -20,8 +20,8 @@
 
 #include "arrowc.h"
 
-void ArrowSchemaViewSetPrimitive(struct ArrowSchemaView* schema_view,
-                                 enum ArrowType data_type) {
+static void ArrowSchemaViewSetPrimitive(struct ArrowSchemaView* schema_view,
+                                        enum ArrowType data_type) {
   schema_view->data_type = data_type;
   schema_view->storage_data_type = data_type;
   schema_view->n_buffers = 2;
@@ -29,9 +29,10 @@ void ArrowSchemaViewSetPrimitive(struct ArrowSchemaView* schema_view,
   schema_view->data_buffer_id = 1;
 }
 
-ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* schema_view,
-                                             const char* format, const char** format_end,
-                                             struct ArrowError* error) {
+static ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* schema_view,
+                                                    const char* format,
+                                                    const char** format_end,
+                                                    struct ArrowError* error) {
   schema_view->validity_buffer_id = -1;
   schema_view->offset_buffer_id = -1;
   schema_view->offset_buffer_id = -1;
