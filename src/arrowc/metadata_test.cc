@@ -15,7 +15,24 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#include "error.c"
-#include "metadata.c"
-#include "schema.c"
-#include "schema_view.c"
+#include <gtest/gtest.h>
+
+#include <arrow/c/bridge.h>
+#include <arrow/testing/gtest_util.h>
+#include <arrow/util/key_value_metadata.h>
+
+#include "arrowc/arrowc.h"
+
+using namespace arrow;
+
+TEST(SchemaTest, Metadata) {
+  // (test will only work on little endian)
+  char simple_metadata[] = {'\1', '\0', '\0', '\0', '\3', '\0', '\0', '\0', 'k', 'e',
+                            'y',  '\5', '\0', '\0', '\0', 'v',  'a',  'l',  'u', 'e'};
+
+  EXPECT_EQ(ArrowMetadataSizeOf(nullptr), 0);
+  EXPECT_EQ(ArrowMetadataSizeOf(simple_metadata), sizeof(simple_metadata));
+
+  EXPECT_EQ(ArrowMetadataContains(simple_metadata, "key"), 1);
+  EXPECT_EQ(ArrowMetadataContains(simple_metadata, "not_a_key"), 1);
+}
