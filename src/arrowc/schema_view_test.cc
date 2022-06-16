@@ -208,7 +208,7 @@ TEST(SchemaViewTest, SchemaViewInitBinaryAndString) {
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
   EXPECT_EQ(schema_view.n_buffers, 3);
   EXPECT_EQ(schema_view.validity_buffer_id, 0);
-  EXPECT_EQ(schema_view.large_offset_buffer_id, 1);
+  EXPECT_EQ(schema_view.offset_buffer_id, 1);
   EXPECT_EQ(schema_view.data_buffer_id, 2);
   EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_LARGE_BINARY);
   EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_LARGE_BINARY);
@@ -218,7 +218,7 @@ TEST(SchemaViewTest, SchemaViewInitBinaryAndString) {
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
   EXPECT_EQ(schema_view.n_buffers, 3);
   EXPECT_EQ(schema_view.validity_buffer_id, 0);
-  EXPECT_EQ(schema_view.large_offset_buffer_id, 1);
+  EXPECT_EQ(schema_view.offset_buffer_id, 1);
   EXPECT_EQ(schema_view.data_buffer_id, 2);
   EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_LARGE_STRING);
   EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_LARGE_STRING);
@@ -509,7 +509,7 @@ TEST(SchemaViewTest, SchemaViewInitNestedList) {
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
   EXPECT_EQ(schema_view.n_buffers, 2);
   EXPECT_EQ(schema_view.validity_buffer_id, 0);
-  EXPECT_EQ(schema_view.large_offset_buffer_id, 1);
+  EXPECT_EQ(schema_view.offset_buffer_id, 1);
   EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_LARGE_LIST);
   EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_LARGE_LIST);
   schema.release(&schema);

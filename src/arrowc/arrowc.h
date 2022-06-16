@@ -279,7 +279,7 @@ ArrowErrorCode ArrowSchemaSetMetadata(struct ArrowSchema* schema, const char* me
 /// encouraged to use the provided getters to ensure forward
 /// compatiblity.
 struct ArrowSchemaView {
-  /// A pointer to the schema represented by this view
+  /// \brief A pointer to the schema represented by this view
   struct ArrowSchema* schema;
 
   /// \brief The data type represented by the schema
@@ -305,9 +305,6 @@ struct ArrowSchemaView {
 
   /// \brief The index of the offset buffer or -1 if one does not exist
   int32_t offset_buffer_id;
-
-  /// \brief The index of the large_offset buffer or -1 if one does not exist
-  int32_t large_offset_buffer_id;
 
   /// \brief The index of the data buffer or -1 if one does not exist
   int32_t data_buffer_id;

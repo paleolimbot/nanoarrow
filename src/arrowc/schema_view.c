@@ -34,7 +34,7 @@ ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* schema_view
                                              struct ArrowError* error) {
   schema_view->validity_buffer_id = -1;
   schema_view->offset_buffer_id = -1;
-  schema_view->large_offset_buffer_id = -1;
+  schema_view->offset_buffer_id = -1;
   schema_view->data_buffer_id = -1;
   schema_view->type_id_buffer_id = -1;
   *format_end = format;
@@ -185,7 +185,7 @@ ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* schema_view
       schema_view->storage_data_type = ARROWC_TYPE_LARGE_BINARY;
       schema_view->n_buffers = 3;
       schema_view->validity_buffer_id = 0;
-      schema_view->large_offset_buffer_id = 1;
+      schema_view->offset_buffer_id = 1;
       schema_view->data_buffer_id = 2;
       *format_end = format + 1;
       return ARROWC_OK;
@@ -194,7 +194,7 @@ ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* schema_view
       schema_view->storage_data_type = ARROWC_TYPE_LARGE_STRING;
       schema_view->n_buffers = 3;
       schema_view->validity_buffer_id = 0;
-      schema_view->large_offset_buffer_id = 1;
+      schema_view->offset_buffer_id = 1;
       schema_view->data_buffer_id = 2;
       *format_end = format + 1;
       return ARROWC_OK;
@@ -218,7 +218,7 @@ ArrowErrorCode ArrowSchemaViewSetStorageType(struct ArrowSchemaView* schema_view
           schema_view->data_type = ARROWC_TYPE_LARGE_LIST;
           schema_view->n_buffers = 2;
           schema_view->validity_buffer_id = 0;
-          schema_view->large_offset_buffer_id = 1;
+          schema_view->offset_buffer_id = 1;
           *format_end = format + 2;
           return ARROWC_OK;
 
