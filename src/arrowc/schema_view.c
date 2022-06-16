@@ -30,7 +30,8 @@ static void ArrowSchemaViewSetPrimitive(struct ArrowSchemaView* schema_view,
 }
 
 static ArrowErrorCode ArrowSchemaViewParse(struct ArrowSchemaView* schema_view,
-                                           const char* format, const char** format_end_out,
+                                           const char* format,
+                                           const char** format_end_out,
                                            struct ArrowError* error) {
   schema_view->validity_buffer_id = -1;
   schema_view->offset_buffer_id = -1;
@@ -45,6 +46,7 @@ static ArrowErrorCode ArrowSchemaViewParse(struct ArrowSchemaView* schema_view,
 
   switch (format[0]) {
     case 'n':
+      schema_view->data_type = ARROWC_TYPE_NA;
       schema_view->storage_data_type = ARROWC_TYPE_NA;
       schema_view->n_buffers = 0;
       *format_end_out = format + 1;
@@ -455,8 +457,123 @@ static ArrowErrorCode ArrowSchemaViewParse(struct ArrowSchemaView* schema_view,
   }
 }
 
+ArrowErrorCode ArrowSchemaViewValidateChildren(struct ArrowSchemaView* schema_view,
+                                               int64_t n_children,
+                                               struct ArrowError* error) {
+  if (n_children != -1 && schema_view->schema->n_children != n_children) {
+    ArrowErrorSet(error, "Expected schema with %d children but found %d children",
+                  (int)n_children, (int)schema_view->schema->n_children);
+    return EINVAL;
+  }
+
+  if (n_children == 0) {
+    return ARROWC_OK;
+  }
+
+  struct ArrowSchemaView child_schema_view;
+  int result;
+  for (int64_t i = 0; i < schema_view->schema->n_children; i++) {
+    result =
+        ArrowSchemaViewInit(&child_schema_view, schema_view->schema->children[i], error);
+    if (result != ARROWC_OK) {
+      return result;
+    }
+  }
+
+  return ARROWC_OK;
+}
+
+ArrowErrorCode ArrowSchemaViewValidateDictionary(struct ArrowSchemaView* schema_view,
+                                                 struct ArrowError* error) {
+  struct ArrowSchemaView dictionary_schema_view;
+  return ArrowSchemaViewInit(&dictionary_schema_view, schema_view->schema->dictionary,
+                             error);
+}
+
 ArrowErrorCode ArrowSchemaViewValidate(struct ArrowSchemaView* schema_view,
+                                       enum ArrowType data_type,
                                        struct ArrowError* error) {
+  int result;
+
+  switch (data_type) {
+    case ARROWC_TYPE_NA:
+    case ARROWC_TYPE_BOOL:
+    case ARROWC_TYPE_UINT8:
+    case ARROWC_TYPE_INT8:
+    case ARROWC_TYPE_UINT16:
+    case ARROWC_TYPE_INT16:
+    case ARROWC_TYPE_UINT32:
+    case ARROWC_TYPE_INT32:
+    case ARROWC_TYPE_UINT64:
+    case ARROWC_TYPE_INT64:
+    case ARROWC_TYPE_HALF_FLOAT:
+    case ARROWC_TYPE_FLOAT:
+    case ARROWC_TYPE_DOUBLE:
+    case ARROWC_TYPE_DECIMAL128:
+    case ARROWC_TYPE_DECIMAL256:
+    case ARROWC_TYPE_STRING:
+    case ARROWC_TYPE_LARGE_STRING:
+    case ARROWC_TYPE_BINARY:
+    case ARROWC_TYPE_LARGE_BINARY:
+    case ARROWC_TYPE_DATE32:
+    case ARROWC_TYPE_DATE64:
+    case ARROWC_TYPE_INTERVAL_MONTHS:
+    case ARROWC_TYPE_INTERVAL_DAY_TIME:
+    case ARROWC_TYPE_INTERVAL_MONTH_DAY_NANO:
+    case ARROWC_TYPE_TIMESTAMP:
+    case ARROWC_TYPE_TIME32:
+    case ARROWC_TYPE_TIME64:
+    case ARROWC_TYPE_DURATION:
+      return ArrowSchemaViewValidateChildren(schema_view, 0, error);
+
+    case ARROWC_TYPE_FIXED_SIZE_BINARY:
+      if (schema_view->fixed_size <= 0) {
+        ArrowErrorSet(error, "Expected fixed size binary with size > 0 but found size %d",
+                      schema_view->fixed_size);
+        return EINVAL;
+      }
+      return ArrowSchemaViewValidateChildren(schema_view, 0, error);
+
+    case ARROWC_TYPE_LIST:
+    case ARROWC_TYPE_LARGE_LIST:
+    case ARROWC_TYPE_FIXED_SIZE_LIST:
+      return ArrowSchemaViewValidateChildren(schema_view, 1, error);
+
+    case ARROWC_TYPE_STRUCT:
+    case ARROWC_TYPE_SPARSE_UNION:
+    case ARROWC_TYPE_DENSE_UNION:
+      return ArrowSchemaViewValidateChildren(schema_view, -1, error);
+
+    case ARROWC_TYPE_MAP:
+      result = ArrowSchemaViewValidateChildren(schema_view, 1, error);
+      if (result != ARROWC_OK) {
+        return result;
+      }
+
+      if (schema_view->schema->children[0]->n_children != 2) {
+        ArrowErrorSet(error, "Expected child of map type to have 2 children but found %d",
+                      (int)schema_view->schema->children[0]->n_children);
+        return EINVAL;
+      }
+
+      if (strcmp(schema_view->schema->children[0]->format, "+s") != 0) {
+        ArrowErrorSet(error,
+                      "Expected format of child of map type to be '+s' but found '%s'",
+                      schema_view->schema->children[0]->format);
+        return EINVAL;
+      }
+
+      return ARROWC_OK;
+
+    case ARROWC_TYPE_DICTIONARY:
+      return ArrowSchemaViewValidateDictionary(schema_view, error);
+
+    default:
+      ArrowErrorSet(error, "Expected a valid enum ArrowType value but found %d",
+                    (int)schema_view->data_type);
+      return EINVAL;
+  }
+
   return ARROWC_OK;
 }
 
@@ -489,7 +606,8 @@ ArrowErrorCode ArrowSchemaViewInit(struct ArrowSchemaView* schema_view,
   }
 
   const char* format_end_out;
-  ArrowErrorCode result = ArrowSchemaViewParse(schema_view, format, &format_end_out, error);
+  ArrowErrorCode result =
+      ArrowSchemaViewParse(schema_view, format, &format_end_out, error);
 
   if (result != ARROWC_OK) {
     char child_error[1024];
@@ -504,11 +622,23 @@ ArrowErrorCode ArrowSchemaViewInit(struct ArrowSchemaView* schema_view,
     return EINVAL;
   }
 
-  // TODO: check for extension type?
   if (schema->dictionary != NULL) {
     schema_view->data_type = ARROWC_TYPE_DICTIONARY;
-    // TODO: check for valid index type?
   }
+
+  result = ArrowSchemaViewValidate(schema_view, schema_view->storage_data_type, error);
+  if (result != ARROWC_OK) {
+    return result;
+  }
+
+  if (schema_view->storage_data_type != schema_view->data_type) {
+    result = ArrowSchemaViewValidate(schema_view, schema_view->data_type, error);
+    if (result != ARROWC_OK) {
+      return result;
+    }
+  }
+
+  // TODO: check for extension type?
 
   return ARROWC_OK;
 }

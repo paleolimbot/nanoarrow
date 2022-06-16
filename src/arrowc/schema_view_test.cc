@@ -77,6 +77,8 @@ TEST(SchemaViewTest, SchemaViewInitSimple) {
 
   ARROW_EXPECT_OK(ExportType(*null(), &schema));
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_NA);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_NA);
   EXPECT_EQ(schema_view.n_buffers, 0);
   schema.release(&schema);
 
