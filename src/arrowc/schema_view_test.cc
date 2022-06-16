@@ -60,15 +60,20 @@ TEST(SchemaViewTest, SchemaViewInitErrors) {
   schema.release(&schema);
 }
 
-#define EXPECT_SIMPLE_TYPE_PARSE_WORKED(arrow_t, arrowc_t)                  \
-  ARROW_EXPECT_OK(ExportType(*arrow_t, &schema));                           \
-  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK); \
-  EXPECT_EQ(schema_view.n_buffers, 2);                                      \
-  EXPECT_EQ(schema_view.validity_buffer_id, 0);                             \
-  EXPECT_EQ(schema_view.data_buffer_id, 1);                                 \
-  EXPECT_EQ(schema_view.data_type, arrowc_t);                               \
-  EXPECT_EQ(schema_view.storage_data_type, arrowc_t);                       \
-  schema.release(&schema)
+void ExpectSimpleTypeOk(std::shared_ptr<DataType> arrow_t, enum ArrowType arrowc_t) {
+  struct ArrowSchema schema;
+  struct ArrowSchemaView schema_view;
+  struct ArrowError error;
+
+  ARROW_EXPECT_OK(ExportType(*arrow_t, &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.n_buffers, 2);
+  EXPECT_EQ(schema_view.validity_buffer_id, 0);
+  EXPECT_EQ(schema_view.data_buffer_id, 1);
+  EXPECT_EQ(schema_view.data_type, arrowc_t);
+  EXPECT_EQ(schema_view.storage_data_type, arrowc_t);
+  schema.release(&schema);
+}
 
 TEST(SchemaViewTest, SchemaViewInitSimple) {
   struct ArrowSchema schema;
@@ -82,18 +87,18 @@ TEST(SchemaViewTest, SchemaViewInitSimple) {
   EXPECT_EQ(schema_view.n_buffers, 0);
   schema.release(&schema);
 
-  EXPECT_SIMPLE_TYPE_PARSE_WORKED(boolean(), ARROWC_TYPE_BOOL);
-  EXPECT_SIMPLE_TYPE_PARSE_WORKED(int8(), ARROWC_TYPE_INT8);
-  EXPECT_SIMPLE_TYPE_PARSE_WORKED(uint8(), ARROWC_TYPE_UINT8);
-  EXPECT_SIMPLE_TYPE_PARSE_WORKED(int16(), ARROWC_TYPE_INT16);
-  EXPECT_SIMPLE_TYPE_PARSE_WORKED(uint16(), ARROWC_TYPE_UINT16);
-  EXPECT_SIMPLE_TYPE_PARSE_WORKED(int32(), ARROWC_TYPE_INT32);
-  EXPECT_SIMPLE_TYPE_PARSE_WORKED(uint32(), ARROWC_TYPE_UINT32);
-  EXPECT_SIMPLE_TYPE_PARSE_WORKED(int64(), ARROWC_TYPE_INT64);
-  EXPECT_SIMPLE_TYPE_PARSE_WORKED(uint64(), ARROWC_TYPE_UINT64);
-  EXPECT_SIMPLE_TYPE_PARSE_WORKED(float16(), ARROWC_TYPE_HALF_FLOAT);
-  EXPECT_SIMPLE_TYPE_PARSE_WORKED(float64(), ARROWC_TYPE_DOUBLE);
-  EXPECT_SIMPLE_TYPE_PARSE_WORKED(float32(), ARROWC_TYPE_FLOAT);
+  ExpectSimpleTypeOk(boolean(), ARROWC_TYPE_BOOL);
+  ExpectSimpleTypeOk(int8(), ARROWC_TYPE_INT8);
+  ExpectSimpleTypeOk(uint8(), ARROWC_TYPE_UINT8);
+  ExpectSimpleTypeOk(int16(), ARROWC_TYPE_INT16);
+  ExpectSimpleTypeOk(uint16(), ARROWC_TYPE_UINT16);
+  ExpectSimpleTypeOk(int32(), ARROWC_TYPE_INT32);
+  ExpectSimpleTypeOk(uint32(), ARROWC_TYPE_UINT32);
+  ExpectSimpleTypeOk(int64(), ARROWC_TYPE_INT64);
+  ExpectSimpleTypeOk(uint64(), ARROWC_TYPE_UINT64);
+  ExpectSimpleTypeOk(float16(), ARROWC_TYPE_HALF_FLOAT);
+  ExpectSimpleTypeOk(float64(), ARROWC_TYPE_DOUBLE);
+  ExpectSimpleTypeOk(float32(), ARROWC_TYPE_FLOAT);
 }
 
 TEST(SchemaViewTest, SchemaViewInitSimpleErrors) {
