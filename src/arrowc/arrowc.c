@@ -17,3 +17,4 @@
 
 #include "error.c"
 #include "schema.c"
+#include "schema_view.c"
