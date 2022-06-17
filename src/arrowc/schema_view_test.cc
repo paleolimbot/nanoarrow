@@ -37,7 +37,7 @@ TEST(SchemaViewTest, SchemaViewInitErrors) {
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
   EXPECT_STREQ(ArrowErrorMessage(&error), "Expected non-released schema");
 
-  ASSERT_EQ(ArrowSchemaInit(0, &schema), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaInit(&schema), ARROWC_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
   EXPECT_STREQ(
       ArrowErrorMessage(&error),
@@ -109,7 +109,8 @@ TEST(SchemaViewTest, SchemaViewInitSimpleErrors) {
   struct ArrowSchemaView schema_view;
   struct ArrowError error;
 
-  ASSERT_EQ(ArrowSchemaInit(2, &schema), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaInit(&schema), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaAllocateChildren(&schema, 2), ARROWC_OK);
   ASSERT_EQ(ArrowSchemaSetFormat(&schema, "n"), ARROWC_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
   EXPECT_STREQ(ArrowErrorMessage(&error),
@@ -152,7 +153,7 @@ TEST(SchemaViewTest, SchemaViewInitDecimalErrors) {
   struct ArrowSchema schema;
   struct ArrowSchemaView schema_view;
   struct ArrowError error;
-  ASSERT_EQ(ArrowSchemaInit(0, &schema), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaInit(&schema), ARROWC_OK);
 
   ASSERT_EQ(ArrowSchemaSetFormat(&schema, "d"), ARROWC_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
@@ -253,7 +254,7 @@ TEST(SchemaViewTest, SchemaViewInitBinaryAndStringErrors) {
   struct ArrowSchema schema;
   struct ArrowSchemaView schema_view;
   struct ArrowError error;
-  ASSERT_EQ(ArrowSchemaInit(0, &schema), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaInit(&schema), ARROWC_OK);
 
   ASSERT_EQ(ArrowSchemaSetFormat(&schema, "w"), ARROWC_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
@@ -474,7 +475,7 @@ TEST(SchemaViewTest, SchemaViewInitTimeErrors) {
   struct ArrowSchema schema;
   struct ArrowSchemaView schema_view;
   struct ArrowError error;
-  ASSERT_EQ(ArrowSchemaInit(0, &schema), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaInit(&schema), ARROWC_OK);
 
   ASSERT_EQ(ArrowSchemaSetFormat(&schema, "t*"), ARROWC_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
@@ -557,7 +558,7 @@ TEST(SchemaViewTest, SchemaViewNestedListErrors) {
   struct ArrowSchema schema;
   struct ArrowSchemaView schema_view;
   struct ArrowError error;
-  ASSERT_EQ(ArrowSchemaInit(0, &schema), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaInit(&schema), ARROWC_OK);
 
   ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+w"), ARROWC_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
@@ -600,7 +601,8 @@ TEST(SchemaViewTest, SchemaViewInitNestedStructErrors) {
   struct ArrowSchemaView schema_view;
   struct ArrowError error;
 
-  ASSERT_EQ(ArrowSchemaInit(1, &schema), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaInit(&schema), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaAllocateChildren(&schema, 1), ARROWC_OK);
   ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+s"), ARROWC_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
   EXPECT_STREQ(
@@ -608,7 +610,7 @@ TEST(SchemaViewTest, SchemaViewInitNestedStructErrors) {
       "Expected valid schema at schema->children[0] but found a released schema");
 
   // Make sure validation passes even with an inspectable but invalid child
-  ASSERT_EQ(ArrowSchemaInit(0, schema.children[0]), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaInit(schema.children[0]), ARROWC_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, schema.children[0], &error), EINVAL);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
 
@@ -640,29 +642,33 @@ TEST(SchemaViewTest, SchemaViewInitNestedMapErrors) {
   struct ArrowSchemaView schema_view;
   struct ArrowError error;
 
-  ASSERT_EQ(ArrowSchemaInit(2, &schema), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaInit(&schema), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaAllocateChildren(&schema, 2), ARROWC_OK);
   ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+m"), ARROWC_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
   EXPECT_STREQ(ArrowErrorMessage(&error),
                "Expected schema with 1 children but found 2 children");
   schema.release(&schema);
 
-  ASSERT_EQ(ArrowSchemaInit(1, &schema), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaInit(&schema), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaAllocateChildren(&schema, 1), ARROWC_OK);
   ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+m"), ARROWC_OK);
-  ASSERT_EQ(ArrowSchemaInit(0, schema.children[0]), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaInit(schema.children[0]), ARROWC_OK);
   ASSERT_EQ(ArrowSchemaSetFormat(schema.children[0], "n"), ARROWC_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
   EXPECT_STREQ(ArrowErrorMessage(&error),
                "Expected child of map type to have 2 children but found 0");
   schema.release(&schema);
 
-  ASSERT_EQ(ArrowSchemaInit(1, &schema), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaInit(&schema), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaAllocateChildren(&schema, 1), ARROWC_OK);
   ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+m"), ARROWC_OK);
-  ASSERT_EQ(ArrowSchemaInit(2, schema.children[0]), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaInit(schema.children[0]), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaAllocateChildren(schema.children[0], 2), ARROWC_OK);
   ASSERT_EQ(ArrowSchemaSetFormat(schema.children[0], "+us:0,1"), ARROWC_OK);
-  ASSERT_EQ(ArrowSchemaInit(0, schema.children[0]->children[0]), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaInit(schema.children[0]->children[0]), ARROWC_OK);
   ASSERT_EQ(ArrowSchemaSetFormat(schema.children[0]->children[0], "n"), ARROWC_OK);
-  ASSERT_EQ(ArrowSchemaInit(0, schema.children[0]->children[1]), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaInit(schema.children[0]->children[1]), ARROWC_OK);
   ASSERT_EQ(ArrowSchemaSetFormat(schema.children[0]->children[1], "n"), ARROWC_OK);
 
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
@@ -704,7 +710,7 @@ TEST(SchemaViewTest, SchemaViewInitNestedUnionErrors) {
   struct ArrowSchema schema;
   struct ArrowSchemaView schema_view;
   struct ArrowError error;
-  ASSERT_EQ(ArrowSchemaInit(0, &schema), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaInit(&schema), ARROWC_OK);
 
   ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+u*"), ARROWC_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
@@ -739,7 +745,7 @@ TEST(SchemaViewTest, SchemaViewInitDictionaryErrors) {
   struct ArrowSchemaView schema_view;
   struct ArrowError error;
 
-  ASSERT_EQ(ArrowSchemaInit(0, &schema), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaInit(&schema), ARROWC_OK);
   ASSERT_EQ(ArrowSchemaSetFormat(&schema, "i"), ARROWC_OK);
   ASSERT_EQ(ArrowSchemaAllocateDictionary(&schema), ARROWC_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);

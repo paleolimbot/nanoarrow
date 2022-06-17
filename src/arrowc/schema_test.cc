@@ -27,7 +27,8 @@ using namespace arrow;
 
 TEST(SchemaTest, SchemaInit) {
   struct ArrowSchema schema;
-  ArrowSchemaInit(2, &schema);
+  ASSERT_EQ(ArrowSchemaInit(&schema), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaAllocateChildren(&schema, 2), ARROWC_OK);
 
   ASSERT_NE(schema.release, nullptr);
   EXPECT_EQ(schema.format, nullptr);
@@ -43,7 +44,7 @@ TEST(SchemaTest, SchemaInit) {
 
 TEST(SchemaTest, SchemaSetFormat) {
   struct ArrowSchema schema;
-  ArrowSchemaInit(0, &schema);
+  ArrowSchemaInit(&schema);
 
   EXPECT_EQ(ArrowSchemaSetFormat(&schema, "i"), ARROWC_OK);
   EXPECT_STREQ(schema.format, "i");
@@ -56,7 +57,7 @@ TEST(SchemaTest, SchemaSetFormat) {
 
 TEST(SchemaTest, SchemaSetName) {
   struct ArrowSchema schema;
-  ArrowSchemaInit(0, &schema);
+  ArrowSchemaInit(&schema);
 
   EXPECT_EQ(ArrowSchemaSetName(&schema, "a_name"), ARROWC_OK);
   EXPECT_STREQ(schema.name, "a_name");
@@ -69,7 +70,7 @@ TEST(SchemaTest, SchemaSetName) {
 
 TEST(SchemaTest, SchemaSetMetadata) {
   struct ArrowSchema schema;
-  ArrowSchemaInit(0, &schema);
+  ArrowSchemaInit(&schema);
 
   // (test will only work on little endian)
   char simple_metadata[] = {'\1', '\0', '\0', '\0', '\3', '\0', '\0', '\0', 'k', 'e',
@@ -86,7 +87,7 @@ TEST(SchemaTest, SchemaSetMetadata) {
 
 TEST(SchemaTest, SchemaAllocateDictionary) {
   struct ArrowSchema schema;
-  ArrowSchemaInit(0, &schema);
+  ArrowSchemaInit(&schema);
 
   EXPECT_EQ(ArrowSchemaAllocateDictionary(&schema), ARROWC_OK);
   EXPECT_EQ(schema.dictionary->release, nullptr);

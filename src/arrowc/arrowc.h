@@ -249,7 +249,7 @@ enum ArrowTimeUnit {
 /// \brief Initialize the fields of a schema
 ///
 /// Initializes the fields and release callback of schema_out.
-ArrowErrorCode ArrowSchemaInit(int64_t n_children, struct ArrowSchema* schema_out);
+ArrowErrorCode ArrowSchemaInit(struct ArrowSchema* schema_out);
 
 /// \brief Make a (full) copy of a schema
 ///
