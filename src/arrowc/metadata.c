@@ -15,9 +15,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#include <string.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "arrowc.h"
 
@@ -66,8 +66,8 @@ ArrowErrorCode ArrowMetadataWalk(const char* metadata,
 }
 
 static ArrowErrorCode ArrowMetadataSizeOfCallback(struct ArrowStringView* key,
-                                                struct ArrowStringView* value,
-                                                void* private_data) {
+                                                  struct ArrowStringView* value,
+                                                  void* private_data) {
   int64_t* size = (int64_t*)private_data;
   *size += sizeof(int32_t) + key->n_bytes + sizeof(int32_t) + value->n_bytes;
   return ARROWC_OK;
@@ -95,7 +95,7 @@ static ArrowErrorCode ArrowMetadataValueCallback(struct ArrowStringView* key,
                                                  void* private_data) {
   struct ArrowMetadataKV* kv = (struct ArrowMetadataKV*)private_data;
   int key_equal = key->n_bytes == kv->key->n_bytes &&
-    strncmp(key->data, kv->key->data, key->n_bytes) == 0;
+                  strncmp(key->data, kv->key->data, key->n_bytes) == 0;
   if (key_equal) {
     kv->value->data = value->data;
     kv->value->n_bytes = value->n_bytes;
@@ -118,7 +118,7 @@ ArrowErrorCode ArrowMetadataValue(const char* metadata, const char* key,
 }
 
 char ArrowMetadataContains(const char* metadata, const char* key) {
-  const char* default_value = "sentinel";
+  const char* default_value = NULL;
   struct ArrowStringView value;
   ArrowMetadataValue(metadata, key, default_value, &value);
   return value.data != default_value;
