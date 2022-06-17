@@ -164,6 +164,20 @@ ArrowErrorCode ArrowSchemaSetMetadata(struct ArrowSchema* schema, const char* me
   return ARROWC_OK;
 }
 
+ArrowErrorCode ArrowSchemaAllocateDictionary(struct ArrowSchema* schema) {
+  if (schema->dictionary != NULL) {
+    return EEXIST;
+  }
+
+  schema->dictionary = (struct ArrowSchema*)ARROWC_MALLOC(sizeof(struct ArrowSchema));
+  if (schema->dictionary == NULL) {
+    return ENOMEM;
+  }
+
+  schema->dictionary->release = NULL;
+  return ARROWC_OK;
+}
+
 int ArrowSchemaDeepCopy(struct ArrowSchema* schema, struct ArrowSchema* schema_out) {
   int result;
   result = ArrowSchemaInit(schema->n_children, schema_out);

@@ -722,6 +722,32 @@ TEST(SchemaViewTest, SchemaViewInitNestedUnionErrors) {
   schema.release(&schema);
 }
 
+TEST(SchemaViewTest, SchemaViewInitDictionary) {
+  struct ArrowSchema schema;
+  struct ArrowSchemaView schema_view;
+  struct ArrowError error;
+
+  ARROW_EXPECT_OK(ExportType(*dictionary(int32(), utf8()), &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_INT32);
+  EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_DICTIONARY);
+  schema.release(&schema);
+}
+
+TEST(SchemaViewTest, SchemaViewInitDictionaryErrors) {
+  struct ArrowSchema schema;
+  struct ArrowSchemaView schema_view;
+  struct ArrowError error;
+
+  ASSERT_EQ(ArrowSchemaInit(0, &schema), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "i"), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaAllocateDictionary(&schema), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error), "Expected non-released schema");
+
+  schema.release(&schema);
+}
+
 TEST(SchemaViewTest, SchemaViewInitExtension) {
   struct ArrowSchema schema;
   struct ArrowSchemaView schema_view;

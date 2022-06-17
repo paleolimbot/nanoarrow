@@ -84,6 +84,16 @@ TEST(SchemaTest, SchemaSetMetadata) {
   schema.release(&schema);
 }
 
+TEST(SchemaTest, SchemaAllocateDictionary) {
+  struct ArrowSchema schema;
+  ArrowSchemaInit(0, &schema);
+
+  EXPECT_EQ(ArrowSchemaAllocateDictionary(&schema), ARROWC_OK);
+  EXPECT_EQ(schema.dictionary->release, nullptr);
+  EXPECT_EQ(ArrowSchemaAllocateDictionary(&schema), EEXIST);
+  schema.release(&schema);
+}
+
 TEST(SchemaTest, SchemaCopySimpleType) {
   struct ArrowSchema schema;
   ARROW_EXPECT_OK(ExportType(*int32(), &schema));

@@ -275,6 +275,12 @@ ArrowErrorCode ArrowSchemaSetName(struct ArrowSchema* schema, const char* name);
 /// ArrowSchemaDeepCopy.
 ArrowErrorCode ArrowSchemaSetMetadata(struct ArrowSchema* schema, const char* metadata);
 
+/// \brief Allocate the schema.dictionary member
+///
+/// schema must have been allocated using ArrowSchemaInit or
+/// ArrowSchemaDeepCopy.
+ArrowErrorCode ArrowSchemaAllocateDictionary(struct ArrowSchema* schema);
+
 /// \brief Iterate over key/value pairs in schema metadata
 ArrowErrorCode ArrowMetadataWalk(const char* metadata,
                                  ArrowErrorCode (*callback)(struct ArrowStringView* key,
