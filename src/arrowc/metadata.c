@@ -88,7 +88,7 @@ struct ArrowMetadataKV {
   struct ArrowStringView* value;
 };
 
-#define ARROWC_EKEYFOUND ELAST + 1
+#define ARROWC_EKEYFOUND 1
 
 static ArrowErrorCode ArrowMetadataValueCallback(struct ArrowStringView* key,
                                                  struct ArrowStringView* value,
