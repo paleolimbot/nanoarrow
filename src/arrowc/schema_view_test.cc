@@ -577,7 +577,7 @@ TEST(SchemaViewTest, SchemaViewNestedListErrors) {
   schema.release(&schema);
 }
 
-TEST(SchemaViewTest, SchemaViewInitNestedMapAndStruct) {
+TEST(SchemaViewTest, SchemaViewInitNestedStruct) {
   struct ArrowSchema schema;
   struct ArrowSchemaView schema_view;
   struct ArrowError error;
@@ -588,7 +588,43 @@ TEST(SchemaViewTest, SchemaViewInitNestedMapAndStruct) {
   EXPECT_EQ(schema_view.validity_buffer_id, 0);
   EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_STRUCT);
   EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_STRUCT);
+
+  // Make sure child validates
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, schema.children[0], &error), ARROWC_OK);
+
   schema.release(&schema);
+}
+
+TEST(SchemaViewTest, SchemaViewInitNestedStructErrors) {
+  struct ArrowSchema schema;
+  struct ArrowSchemaView schema_view;
+  struct ArrowError error;
+
+  ASSERT_EQ(ArrowSchemaInit(1, &schema), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+s"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(
+      ArrowErrorMessage(&error),
+      "Expected valid schema at schema->children[0] but found a released schema");
+
+  // Make sure validation passes even with an inspectable but invalid child
+  ASSERT_EQ(ArrowSchemaInit(0, schema.children[0]), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, schema.children[0], &error), EINVAL);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+
+  ARROWC_FREE(schema.children[0]);
+  schema.children[0] = NULL;
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error),
+               "Expected valid schema at schema->children[0] but found NULL");
+
+  schema.release(&schema);
+}
+
+TEST(SchemaViewTest, SchemaViewInitNestedMap) {
+  struct ArrowSchema schema;
+  struct ArrowSchemaView schema_view;
+  struct ArrowError error;
 
   ARROW_EXPECT_OK(ExportType(*map(int32(), int32()), &schema));
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
@@ -599,7 +635,7 @@ TEST(SchemaViewTest, SchemaViewInitNestedMapAndStruct) {
   schema.release(&schema);
 }
 
-TEST(SchemaViewTest, SchemaViewInitNestedMapAndStructErrors) {
+TEST(SchemaViewTest, SchemaViewInitNestedMapErrors) {
   struct ArrowSchema schema;
   struct ArrowSchemaView schema_view;
   struct ArrowError error;

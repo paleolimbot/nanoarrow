@@ -457,27 +457,56 @@ static ArrowErrorCode ArrowSchemaViewParse(struct ArrowSchemaView* schema_view,
   }
 }
 
-ArrowErrorCode ArrowSchemaViewValidateChildren(struct ArrowSchemaView* schema_view,
-                                               int64_t n_children,
-                                               struct ArrowError* error) {
+static ArrowErrorCode ArrowSchemaViewValidateNChildren(
+    struct ArrowSchemaView* schema_view, int64_t n_children, struct ArrowError* error) {
   if (n_children != -1 && schema_view->schema->n_children != n_children) {
     ArrowErrorSet(error, "Expected schema with %d children but found %d children",
                   (int)n_children, (int)schema_view->schema->n_children);
     return EINVAL;
   }
 
-  if (n_children == 0) {
-    return ARROWC_OK;
+  // Don't do a full validation of children but do check that they won't
+  // segfault if inspected
+  struct ArrowSchema* child;
+  for (int64_t i = 0; i < schema_view->schema->n_children; i++) {
+    child = schema_view->schema->children[i];
+    if (child == NULL) {
+      ArrowErrorSet(error, "Expected valid schema at schema->children[%d] but found NULL",
+                    i);
+      return EINVAL;
+    } else if (child->release == NULL) {
+      ArrowErrorSet(
+          error,
+          "Expected valid schema at schema->children[%d] but found a released schema", i);
+      return EINVAL;
+    }
   }
 
-  struct ArrowSchemaView child_schema_view;
-  int result;
-  for (int64_t i = 0; i < schema_view->schema->n_children; i++) {
-    result =
-        ArrowSchemaViewInit(&child_schema_view, schema_view->schema->children[i], error);
-    if (result != ARROWC_OK) {
-      return result;
-    }
+  return ARROWC_OK;
+}
+
+static ArrowErrorCode ArrowSchemaViewValidateUnion(struct ArrowSchemaView* schema_view,
+                                                   struct ArrowError* error) {
+  return ArrowSchemaViewValidateNChildren(schema_view, -1, error);
+}
+
+static ArrowErrorCode ArrowSchemaViewValidateMap(struct ArrowSchemaView* schema_view,
+                                                 struct ArrowError* error) {
+  int result = ArrowSchemaViewValidateNChildren(schema_view, 1, error);
+  if (result != ARROWC_OK) {
+    return result;
+  }
+
+  if (schema_view->schema->children[0]->n_children != 2) {
+    ArrowErrorSet(error, "Expected child of map type to have 2 children but found %d",
+                  (int)schema_view->schema->children[0]->n_children);
+    return EINVAL;
+  }
+
+  if (strcmp(schema_view->schema->children[0]->format, "+s") != 0) {
+    ArrowErrorSet(error, "Expected format of child of map type to be '+s' but found '%s'",
+                  schema_view->schema->children[0]->format);
+    return EINVAL;
   }
 
   return ARROWC_OK;
@@ -524,7 +553,7 @@ static ArrowErrorCode ArrowSchemaViewValidate(struct ArrowSchemaView* schema_vie
     case ARROWC_TYPE_TIME32:
     case ARROWC_TYPE_TIME64:
     case ARROWC_TYPE_DURATION:
-      return ArrowSchemaViewValidateChildren(schema_view, 0, error);
+      return ArrowSchemaViewValidateNChildren(schema_view, 0, error);
 
     case ARROWC_TYPE_FIXED_SIZE_BINARY:
       if (schema_view->fixed_size <= 0) {
@@ -532,38 +561,22 @@ static ArrowErrorCode ArrowSchemaViewValidate(struct ArrowSchemaView* schema_vie
                       schema_view->fixed_size);
         return EINVAL;
       }
-      return ArrowSchemaViewValidateChildren(schema_view, 0, error);
+      return ArrowSchemaViewValidateNChildren(schema_view, 0, error);
 
     case ARROWC_TYPE_LIST:
     case ARROWC_TYPE_LARGE_LIST:
     case ARROWC_TYPE_FIXED_SIZE_LIST:
-      return ArrowSchemaViewValidateChildren(schema_view, 1, error);
+      return ArrowSchemaViewValidateNChildren(schema_view, 1, error);
 
     case ARROWC_TYPE_STRUCT:
+      return ArrowSchemaViewValidateNChildren(schema_view, -1, error);
+
     case ARROWC_TYPE_SPARSE_UNION:
     case ARROWC_TYPE_DENSE_UNION:
-      return ArrowSchemaViewValidateChildren(schema_view, -1, error);
+      return ArrowSchemaViewValidateUnion(schema_view, error);
 
     case ARROWC_TYPE_MAP:
-      result = ArrowSchemaViewValidateChildren(schema_view, 1, error);
-      if (result != ARROWC_OK) {
-        return result;
-      }
-
-      if (schema_view->schema->children[0]->n_children != 2) {
-        ArrowErrorSet(error, "Expected child of map type to have 2 children but found %d",
-                      (int)schema_view->schema->children[0]->n_children);
-        return EINVAL;
-      }
-
-      if (strcmp(schema_view->schema->children[0]->format, "+s") != 0) {
-        ArrowErrorSet(error,
-                      "Expected format of child of map type to be '+s' but found '%s'",
-                      schema_view->schema->children[0]->format);
-        return EINVAL;
-      }
-
-      return ARROWC_OK;
+      return ArrowSchemaViewValidateMap(schema_view, error);
 
     case ARROWC_TYPE_DICTIONARY:
       return ArrowSchemaViewValidateDictionary(schema_view, error);
