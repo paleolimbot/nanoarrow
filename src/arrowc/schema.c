@@ -75,29 +75,7 @@ int ArrowSchemaInit(int64_t n_children, struct ArrowSchema* schema) {
   schema->private_data = NULL;
   schema->release = &ArrowSchemaRelease;
 
-  if (n_children > 0) {
-    schema->children =
-        (struct ArrowSchema**)ARROWC_MALLOC(n_children * sizeof(struct ArrowSchema*));
-
-    if (schema->children == NULL) {
-      schema->release(schema);
-      return ENOMEM;
-    }
-
-    memset(schema->children, 0, n_children * sizeof(struct ArrowSchema*));
-
-    for (int64_t i = 0; i < n_children; i++) {
-      schema->children[i] =
-          (struct ArrowSchema*)ARROWC_MALLOC(sizeof(struct ArrowSchema));
-
-      if (schema->children[i] == NULL) {
-        schema->release(schema);
-        return ENOMEM;
-      }
-
-      schema->children[i]->release = NULL;
-    }
-  }
+  ArrowSchemaAllocateChildren(schema, n_children);
 
   // We don't allocate the dictionary because it has to be nullptr
   // for non-dictionary-encoded arrays.
@@ -159,6 +137,39 @@ ArrowErrorCode ArrowSchemaSetMetadata(struct ArrowSchema* schema, const char* me
     memcpy((void*)schema->metadata, metadata, metadata_size);
   } else {
     schema->metadata = NULL;
+  }
+
+  return ARROWC_OK;
+}
+
+ArrowErrorCode ArrowSchemaAllocateChildren(struct ArrowSchema* schema,
+                                           int64_t n_children) {
+  if (schema->children != NULL) {
+    return EEXIST;
+  }
+
+  if (n_children > 0) {
+    schema->children =
+        (struct ArrowSchema**)ARROWC_MALLOC(n_children * sizeof(struct ArrowSchema*));
+
+    if (schema->children == NULL) {
+      schema->release(schema);
+      return ENOMEM;
+    }
+
+    memset(schema->children, 0, n_children * sizeof(struct ArrowSchema*));
+
+    for (int64_t i = 0; i < n_children; i++) {
+      schema->children[i] =
+          (struct ArrowSchema*)ARROWC_MALLOC(sizeof(struct ArrowSchema));
+
+      if (schema->children[i] == NULL) {
+        schema->release(schema);
+        return ENOMEM;
+      }
+
+      schema->children[i]->release = NULL;
+    }
   }
 
   return ARROWC_OK;

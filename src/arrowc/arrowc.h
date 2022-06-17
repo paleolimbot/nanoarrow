@@ -275,7 +275,15 @@ ArrowErrorCode ArrowSchemaSetName(struct ArrowSchema* schema, const char* name);
 /// ArrowSchemaDeepCopy.
 ArrowErrorCode ArrowSchemaSetMetadata(struct ArrowSchema* schema, const char* metadata);
 
-/// \brief Allocate the schema.dictionary member
+/// \brief Allocate the schema->children array
+///
+/// Includes the memory for each child struct ArrowSchema.
+/// schema must have been allocated using ArrowSchemaInit or
+/// ArrowSchemaDeepCopy.
+ArrowErrorCode ArrowSchemaAllocateChildren(struct ArrowSchema* schema,
+                                           int64_t n_children);
+
+/// \brief Allocate the schema->dictionary member
 ///
 /// schema must have been allocated using ArrowSchemaInit or
 /// ArrowSchemaDeepCopy.
