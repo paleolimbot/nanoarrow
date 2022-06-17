@@ -514,6 +514,25 @@ static ArrowErrorCode ArrowSchemaViewValidateMap(struct ArrowSchemaView* schema_
 
 static ArrowErrorCode ArrowSchemaViewValidateDictionary(
     struct ArrowSchemaView* schema_view, struct ArrowError* error) {
+  // check for valid index type
+  switch (schema_view->storage_data_type) {
+    case ARROWC_TYPE_UINT8:
+    case ARROWC_TYPE_INT8:
+    case ARROWC_TYPE_UINT16:
+    case ARROWC_TYPE_INT16:
+    case ARROWC_TYPE_UINT32:
+    case ARROWC_TYPE_INT32:
+    case ARROWC_TYPE_UINT64:
+    case ARROWC_TYPE_INT64:
+      break;
+    default:
+      ArrowErrorSet(
+          error,
+          "Expected dictionary schema index type to be an integral type but found '%s'",
+          schema_view->schema->format);
+      return EINVAL;
+  }
+
   struct ArrowSchemaView dictionary_schema_view;
   return ArrowSchemaViewInit(&dictionary_schema_view, schema_view->schema->dictionary,
                              error);
@@ -522,8 +541,6 @@ static ArrowErrorCode ArrowSchemaViewValidateDictionary(
 static ArrowErrorCode ArrowSchemaViewValidate(struct ArrowSchemaView* schema_view,
                                               enum ArrowType data_type,
                                               struct ArrowError* error) {
-  int result;
-
   switch (data_type) {
     case ARROWC_TYPE_NA:
     case ARROWC_TYPE_BOOL:

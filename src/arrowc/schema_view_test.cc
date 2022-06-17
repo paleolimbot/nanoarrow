@@ -749,8 +749,18 @@ TEST(SchemaViewTest, SchemaViewInitDictionaryErrors) {
   ASSERT_EQ(ArrowSchemaSetFormat(&schema, "i"), ARROWC_OK);
   ASSERT_EQ(ArrowSchemaAllocateDictionary(&schema), ARROWC_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
-  EXPECT_STREQ(ArrowErrorMessage(&error), "Expected non-released schema");
+  EXPECT_STREQ(
+      ArrowErrorMessage(&error),
+      "Expected dictionary schema index type to be an integral type but found '+s'");
+  schema.release(&schema);
 
+  ASSERT_EQ(ArrowSchemaInit(&schema), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+s"), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaAllocateDictionary(&schema), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaInit(schema.dictionary), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaSetFormat(schema.dictionary, "u"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
+  EXPECT_STREQ(ArrowErrorMessage(&error), "fish");
   schema.release(&schema);
 }
 
