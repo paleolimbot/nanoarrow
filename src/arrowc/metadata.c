@@ -110,7 +110,11 @@ ArrowErrorCode ArrowMetadataValue(const char* metadata, const char* key,
                                   struct ArrowStringView* value_out) {
   struct ArrowStringView key_view = {key, strlen(key)};
   value_out->data = default_value;
-  value_out->n_bytes = strlen(default_value);
+  if (default_value != NULL) {
+    value_out->n_bytes = strlen(default_value);
+  } else {
+    value_out->n_bytes = 0;
+  }
   struct ArrowMetadataKV kv = {&key_view, value_out};
 
   ArrowMetadataWalk(metadata, &ArrowMetadataValueCallback, &kv);
@@ -118,8 +122,7 @@ ArrowErrorCode ArrowMetadataValue(const char* metadata, const char* key,
 }
 
 char ArrowMetadataContains(const char* metadata, const char* key) {
-  const char* default_value = NULL;
   struct ArrowStringView value;
-  ArrowMetadataValue(metadata, key, default_value, &value);
-  return value.data != default_value;
+  ArrowMetadataValue(metadata, key, NULL, &value);
+  return value.data != NULL;
 }

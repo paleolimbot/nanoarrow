@@ -310,9 +310,10 @@ struct ArrowSchemaView {
   /// \brief The data type represented by the schema
   ///
   /// This value may be ARROWC_TYPE_DICTIONARY if the schema has a
-  /// non-null dictionary member; this value may be ARROWC_TYPE_EXTENSION
-  /// if the schema has the ARROW:extension:name metadata field set.
-  /// Datetime types are valid values.
+  /// non-null dictionary member; datetime types are valid values.
+  /// This value will never be ARROWC_TYPE_EXTENSION (see
+  /// extension_name and/or extension_metadata to check for
+  /// an extension type).
   enum ArrowType data_type;
 
   /// \brief The storage data type represented by the schema
@@ -321,6 +322,18 @@ struct ArrowSchemaView {
   /// or any datetime type. This value represents only the type required to
   /// interpret the buffers in the array.
   enum ArrowType storage_data_type;
+
+  /// \brief The extension type name if it exists
+  ///
+  /// If the ARROW:extension:name key is present in schema.metadata,
+  /// extension_name.data will be non-NULL.
+  struct ArrowStringView extension_name;
+
+  /// \brief The extension type metadata if it exists
+  ///
+  /// If the ARROW:extension:metadata key is present in schema.metadata,
+  /// extension_metadata.data will be non-NULL.
+  struct ArrowStringView extension_metadata;
 
   /// \brief The expected number of buffers in a paired ArrowArray
   int32_t n_buffers;

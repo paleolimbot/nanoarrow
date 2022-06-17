@@ -638,7 +638,10 @@ ArrowErrorCode ArrowSchemaViewInit(struct ArrowSchemaView* schema_view,
     }
   }
 
-  // TODO: check for extension type?
+  ArrowMetadataValue(schema->metadata, "ARROW:extension:name", NULL,
+                     &schema_view->extension_name);
+  ArrowMetadataValue(schema->metadata, "ARROW:extension:metadata", NULL,
+                     &schema_view->extension_metadata);
 
   return ARROWC_OK;
 }

@@ -19,6 +19,7 @@
 
 #include <arrow/c/bridge.h>
 #include <arrow/testing/gtest_util.h>
+#include <arrow/util/key_value_metadata.h>
 
 #include "arrowc/arrowc.h"
 
@@ -85,6 +86,8 @@ TEST(SchemaViewTest, SchemaViewInitSimple) {
   EXPECT_EQ(schema_view.data_type, ARROWC_TYPE_NA);
   EXPECT_EQ(schema_view.storage_data_type, ARROWC_TYPE_NA);
   EXPECT_EQ(schema_view.n_buffers, 0);
+  EXPECT_EQ(schema_view.extension_name.data, nullptr);
+  EXPECT_EQ(schema_view.extension_metadata.data, nullptr);
   schema.release(&schema);
 
   ExpectSimpleTypeOk(boolean(), ARROWC_TYPE_BOOL);
@@ -679,6 +682,28 @@ TEST(SchemaViewTest, SchemaViewInitNestedUnionErrors) {
   EXPECT_STREQ(ArrowErrorMessage(&error),
                "Error parsing schema->format: Expected union format string "
                "+us:<type_ids> or +ud:<type_ids> but found '+us'");
+
+  schema.release(&schema);
+}
+
+TEST(SchemaViewTest, SchemaViewInitExtension) {
+  struct ArrowSchema schema;
+  struct ArrowSchemaView schema_view;
+  struct ArrowError error;
+
+  auto arrow_meta = std::make_shared<KeyValueMetadata>();
+  arrow_meta->Append("ARROW:extension:name", "arrow.test.ext_name");
+  arrow_meta->Append("ARROW:extension:metadata", "test metadata");
+
+  auto int_field = field("field_name", int32(), arrow_meta);
+  ARROW_EXPECT_OK(ExportField(*int_field, &schema));
+  EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
+  EXPECT_EQ(
+      std::string(schema_view.extension_name.data, schema_view.extension_name.n_bytes),
+      "arrow.test.ext_name");
+  EXPECT_EQ(std::string(schema_view.extension_metadata.data,
+                        schema_view.extension_metadata.n_bytes),
+            "test metadata");
 
   schema.release(&schema);
 }
