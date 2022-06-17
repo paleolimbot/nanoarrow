@@ -90,9 +90,9 @@ struct ArrowMetadataKV {
 
 #define ARROWC_EKEYFOUND 1
 
-static ArrowErrorCode ArrowMetadataValueCallback(struct ArrowStringView* key,
-                                                 struct ArrowStringView* value,
-                                                 void* private_data) {
+static ArrowErrorCode ArrowMetadataGetValueCallback(struct ArrowStringView* key,
+                                                    struct ArrowStringView* value,
+                                                    void* private_data) {
   struct ArrowMetadataKV* kv = (struct ArrowMetadataKV*)private_data;
   int key_equal = key->n_bytes == kv->key->n_bytes &&
                   strncmp(key->data, kv->key->data, key->n_bytes) == 0;
@@ -105,9 +105,9 @@ static ArrowErrorCode ArrowMetadataValueCallback(struct ArrowStringView* key,
   }
 }
 
-ArrowErrorCode ArrowMetadataValue(const char* metadata, const char* key,
-                                  const char* default_value,
-                                  struct ArrowStringView* value_out) {
+ArrowErrorCode ArrowMetadataGetValue(const char* metadata, const char* key,
+                                     const char* default_value,
+                                     struct ArrowStringView* value_out) {
   struct ArrowStringView key_view = {key, strlen(key)};
   value_out->data = default_value;
   if (default_value != NULL) {
@@ -117,12 +117,12 @@ ArrowErrorCode ArrowMetadataValue(const char* metadata, const char* key,
   }
   struct ArrowMetadataKV kv = {&key_view, value_out};
 
-  ArrowMetadataWalk(metadata, &ArrowMetadataValueCallback, &kv);
+  ArrowMetadataWalk(metadata, &ArrowMetadataGetValueCallback, &kv);
   return ARROWC_OK;
 }
 
-char ArrowMetadataContains(const char* metadata, const char* key) {
+char ArrowMetadataHasKey(const char* metadata, const char* key) {
   struct ArrowStringView value;
-  ArrowMetadataValue(metadata, key, NULL, &value);
+  ArrowMetadataGetValue(metadata, key, NULL, &value);
   return value.data != NULL;
 }

@@ -286,12 +286,12 @@ ArrowErrorCode ArrowMetadataWalk(const char* metadata,
 int64_t ArrowMetadataSizeOf(const char* metadata);
 
 /// \brief Check for a key in schema metadata
-char ArrowMetadataContains(const char* metadata, const char* key);
+char ArrowMetadataHasKey(const char* metadata, const char* key);
 
 /// \brief Extract a value from schema metadata
-ArrowErrorCode ArrowMetadataValue(const char* metadata, const char* key,
-                                  const char* default_value,
-                                  struct ArrowStringView* value_out);
+ArrowErrorCode ArrowMetadataGetValue(const char* metadata, const char* key,
+                                     const char* default_value,
+                                     struct ArrowStringView* value_out);
 
 /// }@
 

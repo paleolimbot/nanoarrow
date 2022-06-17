@@ -33,13 +33,14 @@ TEST(SchemaTest, Metadata) {
   EXPECT_EQ(ArrowMetadataSizeOf(nullptr), 0);
   EXPECT_EQ(ArrowMetadataSizeOf(simple_metadata), sizeof(simple_metadata));
 
-  EXPECT_EQ(ArrowMetadataContains(simple_metadata, "key"), 1);
-  EXPECT_EQ(ArrowMetadataContains(simple_metadata, "not_a_key"), 0);
+  EXPECT_EQ(ArrowMetadataHasKey(simple_metadata, "key"), 1);
+  EXPECT_EQ(ArrowMetadataHasKey(simple_metadata, "not_a_key"), 0);
 
   struct ArrowStringView value;
-  EXPECT_EQ(ArrowMetadataValue(simple_metadata, "key", "default_val", &value), ARROWC_OK);
+  EXPECT_EQ(ArrowMetadataGetValue(simple_metadata, "key", "default_val", &value),
+            ARROWC_OK);
   EXPECT_EQ(std::string(value.data, value.n_bytes), "value");
-  EXPECT_EQ(ArrowMetadataValue(simple_metadata, "not_a_key", "default_val", &value),
+  EXPECT_EQ(ArrowMetadataGetValue(simple_metadata, "not_a_key", "default_val", &value),
             ARROWC_OK);
   EXPECT_EQ(std::string(value.data, value.n_bytes), "default_val");
 }
