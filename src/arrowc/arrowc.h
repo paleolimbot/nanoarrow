@@ -289,12 +289,21 @@ ArrowErrorCode ArrowSchemaAllocateChildren(struct ArrowSchema* schema,
 /// ArrowSchemaDeepCopy.
 ArrowErrorCode ArrowSchemaAllocateDictionary(struct ArrowSchema* schema);
 
-/// \brief Iterate over key/value pairs in schema metadata
-ArrowErrorCode ArrowMetadataWalk(const char* metadata,
-                                 ArrowErrorCode (*callback)(struct ArrowStringView* key,
-                                                            struct ArrowStringView* value,
-                                                            void* private_data),
-                                 void* private_data);
+/// \brief Reader for key/value pairs in schema metadata
+struct ArrowMetadataReader {
+  const char* metadata;
+  int64_t offset;
+  int32_t remaining_keys;
+};
+
+/// \brief Initialize an ArrowMetadataReader
+ArrowErrorCode ArrowMetadataReaderInit(struct ArrowMetadataReader* reader,
+                                       const char* metadata);
+
+/// \brief Read the next key/value pair from an ArrowMetadataReader
+ArrowErrorCode ArrowMetadataReaderRead(struct ArrowMetadataReader* reader,
+                                       struct ArrowStringView* key_out,
+                                       struct ArrowStringView* value_out);
 
 /// \brief The number of bytes in in a key/value metadata string
 int64_t ArrowMetadataSizeOf(const char* metadata);

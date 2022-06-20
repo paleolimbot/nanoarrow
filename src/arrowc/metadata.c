@@ -21,55 +21,48 @@
 
 #include "arrowc.h"
 
-ArrowErrorCode ArrowMetadataWalk(const char* metadata,
-                                 ArrowErrorCode (*callback)(struct ArrowStringView* key,
-                                                            struct ArrowStringView* value,
-                                                            void* private_data),
-                                 void* private_data) {
-  if (metadata == NULL) {
-    return 0;
-  }
+ArrowErrorCode ArrowMetadataReaderInit(struct ArrowMetadataReader* reader,
+                                       const char* metadata) {
+  reader->metadata = metadata;
 
-  int64_t pos = 0;
-  int32_t n;
-  memcpy(&n, metadata + pos, sizeof(int32_t));
-  pos += sizeof(int32_t);
-
-  int result;
-  struct ArrowStringView key;
-  struct ArrowStringView value;
-
-  for (int i = 0; i < n; i++) {
-    int32_t name_size;
-    memcpy(&name_size, metadata + pos, sizeof(int32_t));
-    pos += sizeof(int32_t);
-
-    key.data = metadata + pos;
-    key.n_bytes = name_size;
-    pos += name_size;
-
-    int32_t value_size;
-    memcpy(&value_size, metadata + pos, sizeof(int32_t));
-    pos += sizeof(int32_t);
-
-    value.data = metadata + pos;
-    value.n_bytes = value_size;
-    pos += value_size;
-
-    result = callback(&key, &value, private_data);
-    if (result != ARROWC_OK) {
-      return result;
-    }
+  if (reader->metadata == NULL) {
+    reader->offset = 0;
+    reader->remaining_keys = 0;
+  } else {
+    memcpy(&reader->remaining_keys, reader->metadata, sizeof(int32_t));
+    reader->offset = sizeof(int32_t);
   }
 
   return ARROWC_OK;
 }
 
-static ArrowErrorCode ArrowMetadataSizeOfCallback(struct ArrowStringView* key,
-                                                  struct ArrowStringView* value,
-                                                  void* private_data) {
-  int64_t* size = (int64_t*)private_data;
-  *size += sizeof(int32_t) + key->n_bytes + sizeof(int32_t) + value->n_bytes;
+ArrowErrorCode ArrowMetadataReaderRead(struct ArrowMetadataReader* reader,
+                                       struct ArrowStringView* key_out,
+                                       struct ArrowStringView* value_out) {
+  if (reader->remaining_keys <= 0) {
+    return EINVAL;
+  }
+
+  int64_t pos = 0;
+
+  int32_t key_size;
+  memcpy(&key_size, reader->metadata + reader->offset + pos, sizeof(int32_t));
+  pos += sizeof(int32_t);
+
+  key_out->data = reader->metadata + reader->offset + pos;
+  key_out->n_bytes = key_size;
+  pos += key_size;
+
+  int32_t value_size;
+  memcpy(&value_size, reader->metadata + reader->offset + pos, sizeof(int32_t));
+  pos += sizeof(int32_t);
+
+  value_out->data = reader->metadata + reader->offset + pos;
+  value_out->n_bytes = value_size;
+  pos += value_size;
+
+  reader->offset += pos;
+  reader->remaining_keys--;
   return ARROWC_OK;
 }
 
@@ -78,46 +71,46 @@ int64_t ArrowMetadataSizeOf(const char* metadata) {
     return 0;
   }
 
+  struct ArrowMetadataReader reader;
+  struct ArrowStringView key;
+  struct ArrowStringView value;
+  ArrowMetadataReaderInit(&reader, metadata);
+
   int64_t size = sizeof(int32_t);
-  ArrowMetadataWalk(metadata, &ArrowMetadataSizeOfCallback, &size);
-  return size;
-}
-
-struct ArrowMetadataKV {
-  struct ArrowStringView* key;
-  struct ArrowStringView* value;
-};
-
-#define ARROWC_EKEYFOUND 1
-
-static ArrowErrorCode ArrowMetadataGetValueCallback(struct ArrowStringView* key,
-                                                    struct ArrowStringView* value,
-                                                    void* private_data) {
-  struct ArrowMetadataKV* kv = (struct ArrowMetadataKV*)private_data;
-  int key_equal = key->n_bytes == kv->key->n_bytes &&
-                  strncmp(key->data, kv->key->data, key->n_bytes) == 0;
-  if (key_equal) {
-    kv->value->data = value->data;
-    kv->value->n_bytes = value->n_bytes;
-    return ARROWC_EKEYFOUND;
-  } else {
-    return ARROWC_OK;
+  while (ArrowMetadataReaderRead(&reader, &key, &value) == ARROWC_OK) {
+    size += sizeof(int32_t) + key.n_bytes + sizeof(int32_t) + value.n_bytes;
   }
+
+  return size;
 }
 
 ArrowErrorCode ArrowMetadataGetValue(const char* metadata, const char* key,
                                      const char* default_value,
                                      struct ArrowStringView* value_out) {
-  struct ArrowStringView key_view = {key, strlen(key)};
+  struct ArrowStringView target_key_view = {key, strlen(key)};
   value_out->data = default_value;
   if (default_value != NULL) {
     value_out->n_bytes = strlen(default_value);
   } else {
     value_out->n_bytes = 0;
   }
-  struct ArrowMetadataKV kv = {&key_view, value_out};
 
-  ArrowMetadataWalk(metadata, &ArrowMetadataGetValueCallback, &kv);
+  struct ArrowMetadataReader reader;
+  struct ArrowStringView key_view;
+  struct ArrowStringView value;
+  ArrowMetadataReaderInit(&reader, metadata);
+
+  int64_t size = sizeof(int32_t);
+  while (ArrowMetadataReaderRead(&reader, &key_view, &value) != ARROWC_OK) {
+    int key_equal = target_key_view.n_bytes == key_view.n_bytes &&
+                    strncmp(target_key_view.data, key_view.data, key_view.n_bytes) == 0;
+    if (key_equal) {
+      value_out->data = value.data;
+      value_out->n_bytes = value.n_bytes;
+      break;
+    }
+  }
+
   return ARROWC_OK;
 }
 
