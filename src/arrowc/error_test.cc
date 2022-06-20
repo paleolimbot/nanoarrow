@@ -15,6 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
+#include <cerrno>
 #include <cstring>
 #include <string>
 
@@ -37,7 +38,9 @@ TEST(ErrorTest, ErrorTestSetOverrun) {
   }
   big_error[2047] = '\0';
 
-  EXPECT_EQ(ArrowErrorSet(&error, "%s", big_error), ARROWC_OK);
-
+  EXPECT_EQ(ArrowErrorSet(&error, "%s", big_error), ERANGE);
   EXPECT_EQ(std::string(ArrowErrorMessage(&error)), std::string(big_error, 1022));
+
+  wchar_t bad_string[] = {0xFFFF, 0};
+  EXPECT_EQ(ArrowErrorSet(&error, "%ls", bad_string), EINVAL);
 }
