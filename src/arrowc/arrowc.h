@@ -126,18 +126,51 @@ struct ArrowArrayStream {
 /// definitions and encourages clients to stack or statically allocate
 /// where convenient.
 
-/// \defgroup arrowc-malloc Low-level memory management
-/// Configure malloc(), realloc(), and free() as compile-time constants.
+/// \defgroup arrowc-malloc Memory management
+/// Allocators for generic heap allocations are configurable as
+/// compile-time constants; allocators for members of the
+/// ArrowArray.buffers member are configurable at runtime.
 
 #ifndef ARROWC_MALLOC
-/// Allocate like malloc()
+/// \brief Allocate like malloc()
 #define ARROWC_MALLOC(size) malloc(size)
 #endif
 
+#ifndef ARROWC_REALLOC
+/// \brief Allocate like realloc()
+#define ARROWC_REALLOC(ptr, size) realloc(ptr, size)
+#endif
+
 #ifndef ARROWC_FREE
-/// Free memory allocated via malloc() or realloc()
+/// \brief Free memory allocated via ARROWC_MALLOC() or ARROWC_REALLOC()
 #define ARROWC_FREE(ptr) free(ptr)
 #endif
+
+/// \brief Buffer allocation and deallocation
+///
+/// Container for allocate, reallocate, and free methods that can be used
+/// to customize allocation and deallocation of buffers when constructing
+/// an ArrowArray.
+struct ArrowBufferAllocator {
+  /// \brief Allocate a buffer or return NULL if it cannot be allocated
+  uint8_t* (*allocate)(struct ArrowBufferAllocator* allocator, int64_t size);
+
+  /// \brief Reallocate a buffer or return NULL if it cannot be reallocated
+  uint8_t* (*reallocate)(struct ArrowBufferAllocator* allocator, uint8_t* ptr,
+                         int64_t old_size, int64_t new_size);
+
+  /// \brief Deallocate a buffer allocated by this allocator
+  void (*free)(struct ArrowBufferAllocator* allocator, uint8_t* ptr, int64_t size);
+
+  /// \brief Opaque data specific to the allocator
+  void* private_data;
+};
+
+/// \brief Return the default allocator
+///
+/// The default allocator uses ARROWC_MALLOC(), ARROWC_REALLOC(), and
+/// ARROWC_FREE().
+struct ArrowBufferAllocator* ArrowBufferAllocatorDefault();
 
 /// }@
 

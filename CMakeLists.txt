@@ -28,6 +28,7 @@ add_library(coverage_config INTERFACE)
 include_directories(src)
 add_library(
     arrowc
+    src/arrowc/allocator.c
     src/arrowc/error.c
     src/arrowc/metadata.c
     src/arrowc/schema.c
@@ -52,6 +53,7 @@ if (ARROWC_BUILD_TESTS)
     find_package(GTest REQUIRED)
     enable_testing()
 
+    add_executable(allocator_test src/arrowc/allocator_test.cc)
     add_executable(error_test src/arrowc/error_test.cc)
     add_executable(metadata_test src/arrowc/metadata_test.cc)
     add_executable(schema_test src/arrowc/schema_test.cc)
@@ -63,12 +65,14 @@ if (ARROWC_BUILD_TESTS)
         target_link_libraries(arrowc coverage_config)
     endif()
 
+    target_link_libraries(allocator_test arrowc GTest::gtest_main arrow_shared arrow_testing_shared)
     target_link_libraries(error_test arrowc GTest::gtest_main)
     target_link_libraries(metadata_test arrowc GTest::gtest_main arrow_shared arrow_testing_shared)
     target_link_libraries(schema_test arrowc GTest::gtest_main arrow_shared arrow_testing_shared)
     target_link_libraries(schema_view_test arrowc GTest::gtest_main arrow_shared arrow_testing_shared)
 
     include(GoogleTest)
+    gtest_discover_tests(allocator_test)
     gtest_discover_tests(error_test)
     gtest_discover_tests(metadata_test)
     gtest_discover_tests(schema_test)
