@@ -22,46 +22,44 @@
 #include "arrowc.h"
 
 void ArrowSchemaRelease(struct ArrowSchema* schema) {
-  if (schema != NULL && schema->release != NULL) {
-    if (schema->format != NULL) ARROWC_FREE((void*)schema->format);
-    if (schema->name != NULL) ARROWC_FREE((void*)schema->name);
-    if (schema->metadata != NULL) ARROWC_FREE((void*)schema->metadata);
+  if (schema->format != NULL) ARROWC_FREE((void*)schema->format);
+  if (schema->name != NULL) ARROWC_FREE((void*)schema->name);
+  if (schema->metadata != NULL) ARROWC_FREE((void*)schema->metadata);
 
-    // This object owns the memory for all the children, but those
-    // children may have been generated elsewhere and might have
-    // their own release() callback.
-    if (schema->children != NULL) {
-      for (int64_t i = 0; i < schema->n_children; i++) {
-        if (schema->children[i] != NULL) {
-          if (schema->children[i]->release != NULL) {
-            schema->children[i]->release(schema->children[i]);
-          }
-
-          ARROWC_FREE(schema->children[i]);
+  // This object owns the memory for all the children, but those
+  // children may have been generated elsewhere and might have
+  // their own release() callback.
+  if (schema->children != NULL) {
+    for (int64_t i = 0; i < schema->n_children; i++) {
+      if (schema->children[i] != NULL) {
+        if (schema->children[i]->release != NULL) {
+          schema->children[i]->release(schema->children[i]);
         }
+
+        ARROWC_FREE(schema->children[i]);
       }
-
-      ARROWC_FREE(schema->children);
     }
 
-    // This object owns the memory for the dictionary but it
-    // may have been generated somewhere else and have its own
-    // release() callback.
-    if (schema->dictionary != NULL) {
-      if (schema->dictionary->release != NULL) {
-        schema->dictionary->release(schema->dictionary);
-      }
-
-      ARROWC_FREE(schema->dictionary);
-    }
-
-    // private data not currently used
-    if (schema->private_data != NULL) {
-      ARROWC_FREE(schema->private_data);
-    }
-
-    schema->release = NULL;
+    ARROWC_FREE(schema->children);
   }
+
+  // This object owns the memory for the dictionary but it
+  // may have been generated somewhere else and have its own
+  // release() callback.
+  if (schema->dictionary != NULL) {
+    if (schema->dictionary->release != NULL) {
+      schema->dictionary->release(schema->dictionary);
+    }
+
+    ARROWC_FREE(schema->dictionary);
+  }
+
+  // private data not currently used
+  if (schema->private_data != NULL) {
+    ARROWC_FREE(schema->private_data);
+  }
+
+  schema->release = NULL;
 }
 
 int ArrowSchemaInit(struct ArrowSchema* schema) {
