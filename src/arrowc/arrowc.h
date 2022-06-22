@@ -161,21 +161,95 @@ struct ArrowError {
 /// \brief Represents an errno-compatible error code
 typedef int ArrowErrorCode;
 
-/// }@
-
 /// \brief Set the contents of an error using printf syntax
 ArrowErrorCode ArrowErrorSet(struct ArrowError* error, const char* fmt, ...);
 
 /// \brief Get the contents of an error
 const char* ArrowErrorMessage(struct ArrowError* error);
 
-/// \defgroup arrowc-schema Schema helpers
+/// }@
+
+/// \defgroup arrowc-utils Utility data structures
+
+/// \brief An non-owning view of a string
+struct ArrowStringView {
+  /// \brief A pointer to the start of the string
+  ///
+  /// If n_bytes is 0, this value may be NULL.
+  const char* data;
+
+  /// \brief The size of the string in bytes,
+  ///
+  /// (Not including the null terminator.)
+  int64_t n_bytes;
+};
+
+/// \brief Arrow type enumerator
+///
+/// These names are intended to map to the corresponding arrow::Type::type
+/// enumerator; however, the numeric values are specifically not equal
+/// (i.e., do not rely on numeric comparison).
+enum ArrowType {
+  ARROWC_TYPE_NA = 1,
+  ARROWC_TYPE_BOOL,
+  ARROWC_TYPE_UINT8,
+  ARROWC_TYPE_INT8,
+  ARROWC_TYPE_UINT16,
+  ARROWC_TYPE_INT16,
+  ARROWC_TYPE_UINT32,
+  ARROWC_TYPE_INT32,
+  ARROWC_TYPE_UINT64,
+  ARROWC_TYPE_INT64,
+  ARROWC_TYPE_HALF_FLOAT,
+  ARROWC_TYPE_FLOAT,
+  ARROWC_TYPE_DOUBLE,
+  ARROWC_TYPE_STRING,
+  ARROWC_TYPE_BINARY,
+  ARROWC_TYPE_FIXED_SIZE_BINARY,
+  ARROWC_TYPE_DATE32,
+  ARROWC_TYPE_DATE64,
+  ARROWC_TYPE_TIMESTAMP,
+  ARROWC_TYPE_TIME32,
+  ARROWC_TYPE_TIME64,
+  ARROWC_TYPE_INTERVAL_MONTHS,
+  ARROWC_TYPE_INTERVAL_DAY_TIME,
+  ARROWC_TYPE_DECIMAL128,
+  ARROWC_TYPE_DECIMAL256,
+  ARROWC_TYPE_LIST,
+  ARROWC_TYPE_STRUCT,
+  ARROWC_TYPE_SPARSE_UNION,
+  ARROWC_TYPE_DENSE_UNION,
+  ARROWC_TYPE_DICTIONARY,
+  ARROWC_TYPE_MAP,
+  ARROWC_TYPE_EXTENSION,
+  ARROWC_TYPE_FIXED_SIZE_LIST,
+  ARROWC_TYPE_DURATION,
+  ARROWC_TYPE_LARGE_STRING,
+  ARROWC_TYPE_LARGE_BINARY,
+  ARROWC_TYPE_LARGE_LIST,
+  ARROWC_TYPE_INTERVAL_MONTH_DAY_NANO
+};
+
+/// \brief Arrow time unit enumerator
+///
+/// These names and values map to the corresponding arrow::TimeUnit::type
+/// enumerator.
+enum ArrowTimeUnit {
+  ARROWC_TIME_UNIT_SECOND = 0,
+  ARROWC_TIME_UNIT_MILLI = 1,
+  ARROWC_TIME_UNIT_MICRO = 2,
+  ARROWC_TIME_UNIT_NANO = 3
+};
+
+/// }@
+
+/// \defgroup arrowc-schema Schema producer helpers
 /// These functions allocate, copy, and destroy ArrowSchema structures
 
 /// \brief Initialize the fields of a schema
 ///
 /// Initializes the fields and release callback of schema_out.
-ArrowErrorCode ArrowSchemaInit(int64_t n_children, struct ArrowSchema* schema_out);
+ArrowErrorCode ArrowSchemaInit(struct ArrowSchema* schema_out);
 
 /// \brief Make a (full) copy of a schema
 ///
@@ -200,6 +274,156 @@ ArrowErrorCode ArrowSchemaSetName(struct ArrowSchema* schema, const char* name);
 /// schema must have been allocated using ArrowSchemaInit or
 /// ArrowSchemaDeepCopy.
 ArrowErrorCode ArrowSchemaSetMetadata(struct ArrowSchema* schema, const char* metadata);
+
+/// \brief Allocate the schema->children array
+///
+/// Includes the memory for each child struct ArrowSchema.
+/// schema must have been allocated using ArrowSchemaInit or
+/// ArrowSchemaDeepCopy.
+ArrowErrorCode ArrowSchemaAllocateChildren(struct ArrowSchema* schema,
+                                           int64_t n_children);
+
+/// \brief Allocate the schema->dictionary member
+///
+/// schema must have been allocated using ArrowSchemaInit or
+/// ArrowSchemaDeepCopy.
+ArrowErrorCode ArrowSchemaAllocateDictionary(struct ArrowSchema* schema);
+
+/// \brief Reader for key/value pairs in schema metadata
+struct ArrowMetadataReader {
+  const char* metadata;
+  int64_t offset;
+  int32_t remaining_keys;
+};
+
+/// \brief Initialize an ArrowMetadataReader
+ArrowErrorCode ArrowMetadataReaderInit(struct ArrowMetadataReader* reader,
+                                       const char* metadata);
+
+/// \brief Read the next key/value pair from an ArrowMetadataReader
+ArrowErrorCode ArrowMetadataReaderRead(struct ArrowMetadataReader* reader,
+                                       struct ArrowStringView* key_out,
+                                       struct ArrowStringView* value_out);
+
+/// \brief The number of bytes in in a key/value metadata string
+int64_t ArrowMetadataSizeOf(const char* metadata);
+
+/// \brief Check for a key in schema metadata
+char ArrowMetadataHasKey(const char* metadata, const char* key);
+
+/// \brief Extract a value from schema metadata
+ArrowErrorCode ArrowMetadataGetValue(const char* metadata, const char* key,
+                                     const char* default_value,
+                                     struct ArrowStringView* value_out);
+
+/// }@
+
+/// \defgroup arrowc-schema-view Schema consumer helpers
+
+/// \brief A non-owning view of a parsed ArrowSchema
+///
+/// Contains more readily extractable values than a raw ArrowSchema.
+/// Clients can stack or statically allocate this structure but are
+/// encouraged to use the provided getters to ensure forward
+/// compatiblity.
+struct ArrowSchemaView {
+  /// \brief A pointer to the schema represented by this view
+  struct ArrowSchema* schema;
+
+  /// \brief The data type represented by the schema
+  ///
+  /// This value may be ARROWC_TYPE_DICTIONARY if the schema has a
+  /// non-null dictionary member; datetime types are valid values.
+  /// This value will never be ARROWC_TYPE_EXTENSION (see
+  /// extension_name and/or extension_metadata to check for
+  /// an extension type).
+  enum ArrowType data_type;
+
+  /// \brief The storage data type represented by the schema
+  ///
+  /// This value will never be ARROWC_TYPE_DICTIONARY, ARROWC_TYPE_EXTENSION
+  /// or any datetime type. This value represents only the type required to
+  /// interpret the buffers in the array.
+  enum ArrowType storage_data_type;
+
+  /// \brief The extension type name if it exists
+  ///
+  /// If the ARROW:extension:name key is present in schema.metadata,
+  /// extension_name.data will be non-NULL.
+  struct ArrowStringView extension_name;
+
+  /// \brief The extension type metadata if it exists
+  ///
+  /// If the ARROW:extension:metadata key is present in schema.metadata,
+  /// extension_metadata.data will be non-NULL.
+  struct ArrowStringView extension_metadata;
+
+  /// \brief The expected number of buffers in a paired ArrowArray
+  int32_t n_buffers;
+
+  /// \brief The index of the validity buffer or -1 if one does not exist
+  int32_t validity_buffer_id;
+
+  /// \brief The index of the offset buffer or -1 if one does not exist
+  int32_t offset_buffer_id;
+
+  /// \brief The index of the data buffer or -1 if one does not exist
+  int32_t data_buffer_id;
+
+  /// \brief The index of the type_ids buffer or -1 if one does not exist
+  int32_t type_id_buffer_id;
+
+  /// \brief Format fixed size parameter
+  ///
+  /// This value is set when parsing a fixed-size binary or fixed-size
+  /// list schema; this value is undefined for other types. For a
+  /// fixed-size binary schema this value is in bytes; for a fixed-size
+  /// list schema this value refers to the number of child elements for
+  /// each element of the parent.
+  int32_t fixed_size;
+
+  /// \brief Decimal bitwidth
+  ///
+  /// This value is set when parsing a decimal type schema;
+  /// this value is undefined for other types.
+  int32_t decimal_bitwidth;
+
+  /// \brief Decimal precision
+  ///
+  /// This value is set when parsing a decimal type schema;
+  /// this value is undefined for other types.
+  int32_t decimal_precision;
+
+  /// \brief Decimal scale
+  ///
+  /// This value is set when parsing a decimal type schema;
+  /// this value is undefined for other types.
+  int32_t decimal_scale;
+
+  /// \brief Format time unit parameter
+  ///
+  /// This value is set when parsing a date/time type. The value is
+  /// undefined for other types.
+  enum ArrowTimeUnit time_unit;
+
+  /// \brief Format timezone parameter
+  ///
+  /// This value is set when parsing a timestamp type and represents
+  /// the timezone format parameter. The ArrowStrintgView points to
+  /// data within the schema and the value is undefined for other types.
+  struct ArrowStringView timezone;
+
+  /// \brief Union type ids parameter
+  ///
+  /// This value is set when parsing a union type and represents
+  /// type ids parameter. The ArrowStringView points to
+  /// data within the schema and the value is undefined for other types.
+  struct ArrowStringView union_type_ids;
+};
+
+/// \brief Initialize an ArrowSchemaView
+ArrowErrorCode ArrowSchemaViewInit(struct ArrowSchemaView* schema_view,
+                                   struct ArrowSchema* schema, struct ArrowError* error);
 
 /// }@
 
