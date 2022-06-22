@@ -20,20 +20,26 @@
 
 #include "arrowc.h"
 
+void* ArrowMalloc(int64_t size) { return malloc(size); }
+
+void* ArrowRealloc(void* ptr, int64_t size) { return realloc(ptr, size); }
+
+void ArrowFree(void* ptr) { free(ptr); }
+
 static uint8_t* ArrowBufferAllocatorMallocAllocate(struct ArrowBufferAllocator* allocator,
                                                    int64_t size) {
-  return ARROWC_MALLOC(size);
+  return ArrowMalloc(size);
 }
 
 static uint8_t* ArrowBufferAllocatorMallocReallocate(
     struct ArrowBufferAllocator* allocator, uint8_t* ptr, int64_t old_size,
     int64_t new_size) {
-  return ARROWC_REALLOC(ptr, new_size);
+  return ArrowRealloc(ptr, new_size);
 }
 
 static void ArrowBufferAllocatorMallocFree(struct ArrowBufferAllocator* allocator,
                                            uint8_t* ptr, int64_t size) {
-  ARROWC_FREE(ptr);
+  ArrowFree(ptr);
 }
 
 static struct ArrowBufferAllocator ArrowBufferAllocatorMalloc = {

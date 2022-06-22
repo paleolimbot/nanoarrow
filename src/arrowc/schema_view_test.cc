@@ -614,7 +614,7 @@ TEST(SchemaViewTest, SchemaViewInitNestedStructErrors) {
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, schema.children[0], &error), EINVAL);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), ARROWC_OK);
 
-  ARROWC_FREE(schema.children[0]);
+  ArrowFree(schema.children[0]);
   schema.children[0] = NULL;
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
   EXPECT_STREQ(ArrowErrorMessage(&error),

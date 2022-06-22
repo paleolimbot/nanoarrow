@@ -22,9 +22,9 @@
 #include "arrowc.h"
 
 void ArrowSchemaRelease(struct ArrowSchema* schema) {
-  if (schema->format != NULL) ARROWC_FREE((void*)schema->format);
-  if (schema->name != NULL) ARROWC_FREE((void*)schema->name);
-  if (schema->metadata != NULL) ARROWC_FREE((void*)schema->metadata);
+  if (schema->format != NULL) ArrowFree((void*)schema->format);
+  if (schema->name != NULL) ArrowFree((void*)schema->name);
+  if (schema->metadata != NULL) ArrowFree((void*)schema->metadata);
 
   // This object owns the memory for all the children, but those
   // children may have been generated elsewhere and might have
@@ -36,11 +36,11 @@ void ArrowSchemaRelease(struct ArrowSchema* schema) {
           schema->children[i]->release(schema->children[i]);
         }
 
-        ARROWC_FREE(schema->children[i]);
+        ArrowFree(schema->children[i]);
       }
     }
 
-    ARROWC_FREE(schema->children);
+    ArrowFree(schema->children);
   }
 
   // This object owns the memory for the dictionary but it
@@ -51,12 +51,12 @@ void ArrowSchemaRelease(struct ArrowSchema* schema) {
       schema->dictionary->release(schema->dictionary);
     }
 
-    ARROWC_FREE(schema->dictionary);
+    ArrowFree(schema->dictionary);
   }
 
   // private data not currently used
   if (schema->private_data != NULL) {
-    ARROWC_FREE(schema->private_data);
+    ArrowFree(schema->private_data);
   }
 
   schema->release = NULL;
@@ -80,12 +80,12 @@ int ArrowSchemaInit(struct ArrowSchema* schema) {
 
 ArrowErrorCode ArrowSchemaSetFormat(struct ArrowSchema* schema, const char* format) {
   if (schema->format != NULL) {
-    ARROWC_FREE((void*)schema->format);
+    ArrowFree((void*)schema->format);
   }
 
   if (format != NULL) {
     size_t format_size = strlen(format) + 1;
-    schema->format = (const char*)ARROWC_MALLOC(format_size);
+    schema->format = (const char*)ArrowMalloc(format_size);
     if (schema->format == NULL) {
       return ENOMEM;
     }
@@ -100,12 +100,12 @@ ArrowErrorCode ArrowSchemaSetFormat(struct ArrowSchema* schema, const char* form
 
 ArrowErrorCode ArrowSchemaSetName(struct ArrowSchema* schema, const char* name) {
   if (schema->name != NULL) {
-    ARROWC_FREE((void*)schema->name);
+    ArrowFree((void*)schema->name);
   }
 
   if (name != NULL) {
     size_t name_size = strlen(name) + 1;
-    schema->name = (const char*)ARROWC_MALLOC(name_size);
+    schema->name = (const char*)ArrowMalloc(name_size);
     if (schema->name == NULL) {
       return ENOMEM;
     }
@@ -120,12 +120,12 @@ ArrowErrorCode ArrowSchemaSetName(struct ArrowSchema* schema, const char* name) 
 
 ArrowErrorCode ArrowSchemaSetMetadata(struct ArrowSchema* schema, const char* metadata) {
   if (schema->metadata != NULL) {
-    ARROWC_FREE((void*)schema->metadata);
+    ArrowFree((void*)schema->metadata);
   }
 
   if (metadata != NULL) {
     size_t metadata_size = ArrowMetadataSizeOf(metadata);
-    schema->metadata = (const char*)ARROWC_MALLOC(metadata_size);
+    schema->metadata = (const char*)ArrowMalloc(metadata_size);
     if (schema->metadata == NULL) {
       return ENOMEM;
     }
@@ -146,7 +146,7 @@ ArrowErrorCode ArrowSchemaAllocateChildren(struct ArrowSchema* schema,
 
   if (n_children > 0) {
     schema->children =
-        (struct ArrowSchema**)ARROWC_MALLOC(n_children * sizeof(struct ArrowSchema*));
+        (struct ArrowSchema**)ArrowMalloc(n_children * sizeof(struct ArrowSchema*));
 
     if (schema->children == NULL) {
       return ENOMEM;
@@ -157,8 +157,7 @@ ArrowErrorCode ArrowSchemaAllocateChildren(struct ArrowSchema* schema,
     memset(schema->children, 0, n_children * sizeof(struct ArrowSchema*));
 
     for (int64_t i = 0; i < n_children; i++) {
-      schema->children[i] =
-          (struct ArrowSchema*)ARROWC_MALLOC(sizeof(struct ArrowSchema));
+      schema->children[i] = (struct ArrowSchema*)ArrowMalloc(sizeof(struct ArrowSchema));
 
       if (schema->children[i] == NULL) {
         return ENOMEM;
@@ -176,7 +175,7 @@ ArrowErrorCode ArrowSchemaAllocateDictionary(struct ArrowSchema* schema) {
     return EEXIST;
   }
 
-  schema->dictionary = (struct ArrowSchema*)ARROWC_MALLOC(sizeof(struct ArrowSchema));
+  schema->dictionary = (struct ArrowSchema*)ArrowMalloc(sizeof(struct ArrowSchema));
   if (schema->dictionary == NULL) {
     return ENOMEM;
   }

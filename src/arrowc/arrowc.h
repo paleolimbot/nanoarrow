@@ -127,26 +127,22 @@ struct ArrowArrayStream {
 /// where convenient.
 
 /// \defgroup arrowc-malloc Memory management
-/// Allocators for generic heap allocations are configurable as
-/// compile-time constants; allocators for members of the
-/// ArrowArray.buffers member are configurable at runtime.
+///
+/// Non-buffer members of a struct ArrowSchema and struct ArrowArray
+/// must be allocated using ArrowMalloc() or ArrowRealloc() and freed
+/// using ArrowFree for schemas and arrays allocated here. Buffer members
+/// are allocated using an ArrowBufferAllocator.
 
-#ifndef ARROWC_MALLOC
 /// \brief Allocate like malloc()
-#define ARROWC_MALLOC(size) malloc(size)
-#endif
+void* ArrowMalloc(int64_t size);
 
-#ifndef ARROWC_REALLOC
-/// \brief Allocate like realloc()
-#define ARROWC_REALLOC(ptr, size) realloc(ptr, size)
-#endif
+/// \brief Reallocate like realloc()
+void* ArrowRealloc(void* ptr, int64_t size);
 
-#ifndef ARROWC_FREE
-/// \brief Free memory allocated via ARROWC_MALLOC() or ARROWC_REALLOC()
-#define ARROWC_FREE(ptr) free(ptr)
-#endif
+/// \brief Free a pointer allocated using ArrowMalloc() or ArrowRealloc().
+void ArrowFree(void* ptr);
 
-/// \brief Buffer allocation and deallocation
+/// \brief Array buffer allocation and deallocation
 ///
 /// Container for allocate, reallocate, and free methods that can be used
 /// to customize allocation and deallocation of buffers when constructing
@@ -168,8 +164,8 @@ struct ArrowBufferAllocator {
 
 /// \brief Return the default allocator
 ///
-/// The default allocator uses ARROWC_MALLOC(), ARROWC_REALLOC(), and
-/// ARROWC_FREE().
+/// The default allocator uses ArrowMalloc(), ArrowRealloc(), and
+/// ArrowFree().
 struct ArrowBufferAllocator* ArrowBufferAllocatorDefault();
 
 /// }@
