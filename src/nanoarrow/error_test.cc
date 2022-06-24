@@ -15,28 +15,32 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#include <errno.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <string.h>
+#include <cerrno>
+#include <cstring>
+#include <string>
 
-#include "arrowc.h"
+#include <gtest/gtest.h>
 
-int ArrowErrorSet(struct ArrowError* error, const char* fmt, ...) {
-  memset(error->message, 0, sizeof(error->message));
+#include "nanoarrow/nanoarrow.h"
 
-  va_list args;
-  va_start(args, fmt);
-  int chars_needed = vsnprintf(error->message, sizeof(error->message), fmt, args);
-  va_end(args);
-
-  if (chars_needed < 0) {
-    return EINVAL;
-  } else if (chars_needed >= sizeof(error->message)) {
-    return ERANGE;
-  } else {
-    return ARROWC_OK;
-  }
+TEST(ErrorTest, ErrorTestSet) {
+  ArrowError error;
+  EXPECT_EQ(ArrowErrorSet(&error, "there were %d foxes", 4), NANOARROW_OK);
+  EXPECT_STREQ(ArrowErrorMessage(&error), "there were 4 foxes");
 }
 
-const char* ArrowErrorMessage(struct ArrowError* error) { return error->message; }
+TEST(ErrorTest, ErrorTestSetOverrun) {
+  ArrowError error;
+  char big_error[2048];
+  const char* a_few_chars = "abcdefg";
+  for (int i = 0; i < 2047; i++) {
+    big_error[i] = a_few_chars[i % strlen(a_few_chars)];
+  }
+  big_error[2047] = '\0';
+
+  EXPECT_EQ(ArrowErrorSet(&error, "%s", big_error), ERANGE);
+  EXPECT_EQ(std::string(ArrowErrorMessage(&error)), std::string(big_error, 1023));
+
+  wchar_t bad_string[] = {0xFFFF, 0};
+  EXPECT_EQ(ArrowErrorSet(&error, "%ls", bad_string), EINVAL);
+}

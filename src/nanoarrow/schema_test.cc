@@ -21,14 +21,14 @@
 #include <arrow/testing/gtest_util.h>
 #include <arrow/util/key_value_metadata.h>
 
-#include "arrowc/arrowc.h"
+#include "nanoarrow/nanoarrow.h"
 
 using namespace arrow;
 
 TEST(SchemaTest, SchemaInit) {
   struct ArrowSchema schema;
-  ASSERT_EQ(ArrowSchemaInit(&schema), ARROWC_OK);
-  ASSERT_EQ(ArrowSchemaAllocateChildren(&schema, 2), ARROWC_OK);
+  ASSERT_EQ(ArrowSchemaInit(&schema), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaAllocateChildren(&schema, 2), NANOARROW_OK);
 
   ASSERT_NE(schema.release, nullptr);
   EXPECT_EQ(schema.format, nullptr);
@@ -46,10 +46,10 @@ TEST(SchemaTest, SchemaSetFormat) {
   struct ArrowSchema schema;
   ArrowSchemaInit(&schema);
 
-  EXPECT_EQ(ArrowSchemaSetFormat(&schema, "i"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaSetFormat(&schema, "i"), NANOARROW_OK);
   EXPECT_STREQ(schema.format, "i");
 
-  EXPECT_EQ(ArrowSchemaSetFormat(&schema, nullptr), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaSetFormat(&schema, nullptr), NANOARROW_OK);
   EXPECT_EQ(schema.format, nullptr);
 
   schema.release(&schema);
@@ -59,10 +59,10 @@ TEST(SchemaTest, SchemaSetName) {
   struct ArrowSchema schema;
   ArrowSchemaInit(&schema);
 
-  EXPECT_EQ(ArrowSchemaSetName(&schema, "a_name"), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaSetName(&schema, "a_name"), NANOARROW_OK);
   EXPECT_STREQ(schema.name, "a_name");
 
-  EXPECT_EQ(ArrowSchemaSetName(&schema, nullptr), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaSetName(&schema, nullptr), NANOARROW_OK);
   EXPECT_EQ(schema.name, nullptr);
 
   schema.release(&schema);
@@ -76,10 +76,10 @@ TEST(SchemaTest, SchemaSetMetadata) {
   char simple_metadata[] = {'\1', '\0', '\0', '\0', '\3', '\0', '\0', '\0', 'k', 'e',
                             'y',  '\5', '\0', '\0', '\0', 'v',  'a',  'l',  'u', 'e'};
 
-  EXPECT_EQ(ArrowSchemaSetMetadata(&schema, simple_metadata), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaSetMetadata(&schema, simple_metadata), NANOARROW_OK);
   EXPECT_EQ(memcmp(schema.metadata, simple_metadata, sizeof(simple_metadata)), 0);
 
-  EXPECT_EQ(ArrowSchemaSetMetadata(&schema, nullptr), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaSetMetadata(&schema, nullptr), NANOARROW_OK);
   EXPECT_EQ(schema.metadata, nullptr);
 
   schema.release(&schema);
@@ -89,7 +89,7 @@ TEST(SchemaTest, SchemaAllocateDictionary) {
   struct ArrowSchema schema;
   ArrowSchemaInit(&schema);
 
-  EXPECT_EQ(ArrowSchemaAllocateDictionary(&schema), ARROWC_OK);
+  EXPECT_EQ(ArrowSchemaAllocateDictionary(&schema), NANOARROW_OK);
   EXPECT_EQ(schema.dictionary->release, nullptr);
   EXPECT_EQ(ArrowSchemaAllocateDictionary(&schema), EEXIST);
   schema.release(&schema);

@@ -32,13 +32,13 @@ support.
 
 You can use arrow-c in your project in two ways:
 
-1. Copy contents of the `src/arrowc/` into your favourite include directory and
-   `#include <arrowc/arrowc.c>` somewhere in your project exactly once.
+1. Copy contents of the `src/nanoarrow/` into your favourite include directory and
+   `#include <nanoarrow/nanoarrow.c>` somewhere in your project exactly once.
 2. Clone and use `cmake`, `cmake --build`, and `cmake --install` to build/install
-   the static library and add `-L/path/to/arrowc/lib -larrowc` to your favourite
+   the static library and add `-L/path/to/nanoarrow/lib -lnanoarrow` to your favourite
    linker flag configuration.
 
-All public functions and types are declared in `arrowc/arrowc.h`.
+All public functions and types are declared in `nanoarrow/nanoarrow.h`.
 
 In all cases you will want to copy this project or pin your build to a specific commit
 since it will change rapidly and regularly. The arrow-c library does not and will

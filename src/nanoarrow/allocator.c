@@ -18,7 +18,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#include "arrowc.h"
+#include "nanoarrow.h"
 
 void* ArrowMalloc(int64_t size) { return malloc(size); }
 

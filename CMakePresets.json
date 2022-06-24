@@ -21,7 +21,7 @@
             "displayName": "Default with tests",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "ARROWC_BUILD_TESTS": "ON"
+                "NANOARROW_BUILD_TESTS": "ON"
             }
         }
     ]

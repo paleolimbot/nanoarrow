@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "arrowc.h"
+#include "nanoarrow.h"
 
 void ArrowSchemaRelease(struct ArrowSchema* schema) {
   if (schema->format != NULL) ArrowFree((void*)schema->format);
@@ -75,7 +75,7 @@ int ArrowSchemaInit(struct ArrowSchema* schema) {
 
   // We don't allocate the dictionary because it has to be nullptr
   // for non-dictionary-encoded arrays.
-  return ARROWC_OK;
+  return NANOARROW_OK;
 }
 
 ArrowErrorCode ArrowSchemaSetFormat(struct ArrowSchema* schema, const char* format) {
@@ -95,7 +95,7 @@ ArrowErrorCode ArrowSchemaSetFormat(struct ArrowSchema* schema, const char* form
     schema->format = NULL;
   }
 
-  return ARROWC_OK;
+  return NANOARROW_OK;
 }
 
 ArrowErrorCode ArrowSchemaSetName(struct ArrowSchema* schema, const char* name) {
@@ -115,7 +115,7 @@ ArrowErrorCode ArrowSchemaSetName(struct ArrowSchema* schema, const char* name) 
     schema->name = NULL;
   }
 
-  return ARROWC_OK;
+  return NANOARROW_OK;
 }
 
 ArrowErrorCode ArrowSchemaSetMetadata(struct ArrowSchema* schema, const char* metadata) {
@@ -135,7 +135,7 @@ ArrowErrorCode ArrowSchemaSetMetadata(struct ArrowSchema* schema, const char* me
     schema->metadata = NULL;
   }
 
-  return ARROWC_OK;
+  return NANOARROW_OK;
 }
 
 ArrowErrorCode ArrowSchemaAllocateChildren(struct ArrowSchema* schema,
@@ -167,7 +167,7 @@ ArrowErrorCode ArrowSchemaAllocateChildren(struct ArrowSchema* schema,
     }
   }
 
-  return ARROWC_OK;
+  return NANOARROW_OK;
 }
 
 ArrowErrorCode ArrowSchemaAllocateDictionary(struct ArrowSchema* schema) {
@@ -181,43 +181,43 @@ ArrowErrorCode ArrowSchemaAllocateDictionary(struct ArrowSchema* schema) {
   }
 
   schema->dictionary->release = NULL;
-  return ARROWC_OK;
+  return NANOARROW_OK;
 }
 
 int ArrowSchemaDeepCopy(struct ArrowSchema* schema, struct ArrowSchema* schema_out) {
   int result;
   result = ArrowSchemaInit(schema_out);
-  if (result != ARROWC_OK) {
+  if (result != NANOARROW_OK) {
     return result;
   }
 
   result = ArrowSchemaSetFormat(schema_out, schema->format);
-  if (result != ARROWC_OK) {
+  if (result != NANOARROW_OK) {
     schema_out->release(schema_out);
     return result;
   }
 
   result = ArrowSchemaSetName(schema_out, schema->name);
-  if (result != ARROWC_OK) {
+  if (result != NANOARROW_OK) {
     schema_out->release(schema_out);
     return result;
   }
 
   result = ArrowSchemaSetMetadata(schema_out, schema->metadata);
-  if (result != ARROWC_OK) {
+  if (result != NANOARROW_OK) {
     schema_out->release(schema_out);
     return result;
   }
 
   result = ArrowSchemaAllocateChildren(schema_out, schema->n_children);
-  if (result != ARROWC_OK) {
+  if (result != NANOARROW_OK) {
     schema_out->release(schema_out);
     return result;
   }
 
   for (int64_t i = 0; i < schema->n_children; i++) {
     result = ArrowSchemaDeepCopy(schema->children[i], schema_out->children[i]);
-    if (result != ARROWC_OK) {
+    if (result != NANOARROW_OK) {
       schema_out->release(schema_out);
       return result;
     }
@@ -225,17 +225,17 @@ int ArrowSchemaDeepCopy(struct ArrowSchema* schema, struct ArrowSchema* schema_o
 
   if (schema->dictionary != NULL) {
     result = ArrowSchemaAllocateDictionary(schema_out);
-    if (result != ARROWC_OK) {
+    if (result != NANOARROW_OK) {
       schema_out->release(schema_out);
       return result;
     }
 
     result = ArrowSchemaDeepCopy(schema->dictionary, schema_out->dictionary);
-    if (result != ARROWC_OK) {
+    if (result != NANOARROW_OK) {
       schema_out->release(schema_out);
       return result;
     }
   }
 
-  return ARROWC_OK;
+  return NANOARROW_OK;
 }

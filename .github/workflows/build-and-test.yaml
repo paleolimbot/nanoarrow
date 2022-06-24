@@ -74,11 +74,11 @@ jobs:
           cd ../googletest
           cmake --install . --prefix ../../dist
 
-      - name: Build arrowc
+      - name: Build nanoarrow
         run: |
           mkdir build
           cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Debug -DGTest_DIR=`pwd`/../dist/lib/cmake/GTest -DArrow_DIR=`pwd`/../dist/lib/cmake/arrow -DArrowTesting_DIR=`pwd`/../dist/lib/cmake/arrow -DARROWC_CODE_COVERAGE=ON -DARROWC_BUILD_TESTS=ON
+          cmake .. -DCMAKE_BUILD_TYPE=Debug -DGTest_DIR=`pwd`/../dist/lib/cmake/GTest -DArrow_DIR=`pwd`/../dist/lib/cmake/arrow -DArrowTesting_DIR=`pwd`/../dist/lib/cmake/arrow -DNANOARROW_CODE_COVERAGE=ON -DNANOARROW_BUILD_TESTS=ON
           cmake --build .
 
       - name: Run tests
@@ -96,7 +96,7 @@ jobs:
           SOURCE_PREFIX=`pwd`
           mkdir build/cov
           cd build/cov
-          gcov -abcfu --source-prefix=$SOURCE_PREFIX `find ../CMakeFiles/arrowc.dir/ -name "*.gcno"`
+          gcov -abcfu --source-prefix=$SOURCE_PREFIX `find ../CMakeFiles/nanoarrow.dir/ -name "*.gcno"`
 
       - name: Upload coverage
         uses: codecov/codecov-action@v2
