@@ -20,9 +20,9 @@ cmake_minimum_required(VERSION 3.14)
 
 project(ArrowC)
 
-option(ARROWC_BUILD_TESTS "Build tests" OFF)
+option(NANOARROW_BUILD_TESTS "Build tests" OFF)
 
-option(ARROWC_CODE_COVERAGE "Enable coverage reporting" OFF)
+option(NANOARROW_CODE_COVERAGE "Enable coverage reporting" OFF)
 add_library(coverage_config INTERFACE)
 
 include_directories(src)
@@ -38,7 +38,7 @@ install(TARGETS arrowc DESTINATION lib)
 install(DIRECTORY src/ DESTINATION include FILES_MATCHING PATTERN "*.h")
 install(DIRECTORY src/ DESTINATION include FILES_MATCHING PATTERN "*.c")
 
-if (ARROWC_BUILD_TESTS)
+if (NANOARROW_BUILD_TESTS)
     # For testing we use GTest + Arrow C++ (both need C++11)
     include(FetchContent)
 
@@ -59,7 +59,7 @@ if (ARROWC_BUILD_TESTS)
     add_executable(schema_test src/arrowc/schema_test.cc)
     add_executable(schema_view_test src/arrowc/schema_view_test.cc)
 
-    if (ARROWC_CODE_COVERAGE)
+    if (NANOARROW_CODE_COVERAGE)
         target_compile_options(coverage_config INTERFACE -O0 -g --coverage)
         target_link_options(coverage_config INTERFACE --coverage)
         target_link_libraries(arrowc coverage_config)

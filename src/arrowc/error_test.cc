@@ -25,7 +25,7 @@
 
 TEST(ErrorTest, ErrorTestSet) {
   ArrowError error;
-  EXPECT_EQ(ArrowErrorSet(&error, "there were %d foxes", 4), ARROWC_OK);
+  EXPECT_EQ(ArrowErrorSet(&error, "there were %d foxes", 4), NANOARROW_OK);
   EXPECT_STREQ(ArrowErrorMessage(&error), "there were 4 foxes");
 }
 

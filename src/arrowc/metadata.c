@@ -33,7 +33,7 @@ ArrowErrorCode ArrowMetadataReaderInit(struct ArrowMetadataReader* reader,
     reader->offset = sizeof(int32_t);
   }
 
-  return ARROWC_OK;
+  return NANOARROW_OK;
 }
 
 ArrowErrorCode ArrowMetadataReaderRead(struct ArrowMetadataReader* reader,
@@ -63,7 +63,7 @@ ArrowErrorCode ArrowMetadataReaderRead(struct ArrowMetadataReader* reader,
 
   reader->offset += pos;
   reader->remaining_keys--;
-  return ARROWC_OK;
+  return NANOARROW_OK;
 }
 
 int64_t ArrowMetadataSizeOf(const char* metadata) {
@@ -77,7 +77,7 @@ int64_t ArrowMetadataSizeOf(const char* metadata) {
   ArrowMetadataReaderInit(&reader, metadata);
 
   int64_t size = sizeof(int32_t);
-  while (ArrowMetadataReaderRead(&reader, &key, &value) == ARROWC_OK) {
+  while (ArrowMetadataReaderRead(&reader, &key, &value) == NANOARROW_OK) {
     size += sizeof(int32_t) + key.n_bytes + sizeof(int32_t) + value.n_bytes;
   }
 
@@ -101,7 +101,7 @@ ArrowErrorCode ArrowMetadataGetValue(const char* metadata, const char* key,
   ArrowMetadataReaderInit(&reader, metadata);
 
   int64_t size = sizeof(int32_t);
-  while (ArrowMetadataReaderRead(&reader, &key_view, &value) == ARROWC_OK) {
+  while (ArrowMetadataReaderRead(&reader, &key_view, &value) == NANOARROW_OK) {
     int key_equal = target_key_view.n_bytes == key_view.n_bytes &&
                     strncmp(target_key_view.data, key_view.data, key_view.n_bytes) == 0;
     if (key_equal) {
@@ -111,7 +111,7 @@ ArrowErrorCode ArrowMetadataGetValue(const char* metadata, const char* key,
     }
   }
 
-  return ARROWC_OK;
+  return NANOARROW_OK;
 }
 
 char ArrowMetadataHasKey(const char* metadata, const char* key) {
