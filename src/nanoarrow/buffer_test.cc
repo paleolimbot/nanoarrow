@@ -58,6 +58,24 @@ TEST(BufferTest, BufferTestBasic) {
   EXPECT_EQ(buffer.size_bytes, 5);
   EXPECT_EQ(strncmp(reinterpret_cast<char*>(buffer.data), "12345", 5), 0);
 
+  // Transfer responsibility to the same allocator
+  first_data = buffer.data;
+  EXPECT_EQ(ArrowBufferSetAllocator(&buffer, buffer.allocator), NANOARROW_OK);
+  EXPECT_EQ(buffer.data, first_data);
+  EXPECT_EQ(buffer.capacity_bytes, 5);
+  EXPECT_EQ(buffer.size_bytes, 5);
+  EXPECT_EQ(strncmp(reinterpret_cast<char*>(buffer.data), "12345", 5), 0);
+
+  // Transfer responsibility to another allocator
+  struct ArrowBufferAllocator non_default_allocator;
+  memcpy(&non_default_allocator, ArrowBufferAllocatorDefault(), sizeof(struct ArrowBufferAllocator));
+
+  EXPECT_EQ(ArrowBufferSetAllocator(&buffer, &non_default_allocator), NANOARROW_OK);
+  EXPECT_NE(buffer.data, first_data);
+  EXPECT_EQ(buffer.capacity_bytes, 5);
+  EXPECT_EQ(buffer.size_bytes, 5);
+  EXPECT_EQ(strncmp(reinterpret_cast<char*>(buffer.data), "12345", 5), 0);
+
   ArrowBufferRelease(&buffer);
 }
 

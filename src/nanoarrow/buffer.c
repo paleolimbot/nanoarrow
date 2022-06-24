@@ -50,7 +50,7 @@ ArrowErrorCode ArrowBufferSetAllocator(struct ArrowBuffer* buffer,
     memcpy(data2, buffer->data, buffer->size_bytes);
   }
 
-  ArrowBufferRelease(buffer);
+  buffer->allocator->free(buffer->allocator, buffer->data, buffer->capacity_bytes);
 
   buffer->data = data2;
   buffer->allocator = allocator;
