@@ -211,6 +211,17 @@ struct ArrowStringView {
   int64_t n_bytes;
 };
 
+/// \brief An non-owning view of a buffer
+struct ArrowBufferView {
+  /// \brief A pointer to the start of the buffer
+  ///
+  /// If n_bytes is 0, this value may be NULL.
+  const uint8_t* data;
+
+  /// \brief The size of the buffer in bytes
+  int64_t n_bytes;
+};
+
 /// \brief Arrow type enumerator
 ///
 /// These names are intended to map to the corresponding arrow::Type::type
@@ -451,6 +462,55 @@ struct ArrowSchemaView {
 /// \brief Initialize an ArrowSchemaView
 ArrowErrorCode ArrowSchemaViewInit(struct ArrowSchemaView* schema_view,
                                    struct ArrowSchema* schema, struct ArrowError* error);
+
+/// }@
+
+/// \defgroup nanoarrow-buffer-builder Growable buffer builders
+
+/// \brief An owning view of a buffer
+struct ArrowBuffer {
+  /// \brief A pointer to the start of the buffer
+  ///
+  /// If capacity_bytes is 0, this value may be NULL.
+  uint8_t* data;
+
+  /// \brief The size of the buffer in bytes
+  int64_t size_bytes;
+
+  /// \brief The capacity of the buffer in bytes
+  int64_t capacity_bytes;
+
+  /// \brief Factor by which to grow the buffer when reallocating
+  double growth_factor;
+
+  /// \brief The allocator that may be used to reallocate or free the buffer
+  struct ArrowBufferAllocator* allocator;
+};
+
+/// \brief Initialize an ArrowBufferBuilder
+///
+/// Initialize a buffer with a NULL, zero-size buffer using the default
+/// buffer allocator.
+ArrowErrorCode ArrowBufferInit(struct ArrowBuffer* buffer);
+
+ArrowErrorCode ArrowBufferSetAllocator(struct ArrowBuffer* buffer,
+                                       struct ArrowBufferAllocator* allocator);
+
+/// \brief Release an ArrowBufferBuilder
+///
+/// Releases the buffer using the allocator's free callback if
+/// the buffer's data member is non-null.
+void ArrowBufferRelease(struct ArrowBuffer* buffer);
+
+ArrowErrorCode ArrowBufferReserve(struct ArrowBuffer* buffer, int64_t min_capacity_bytes);
+
+ArrowErrorCode ArrowBufferReserveAdditional(struct ArrowBuffer* buffer,
+                                            int64_t additional_size_bytes);
+
+void ArrowBufferWrite(struct ArrowBuffer* buffer, struct ArrowBufferView* new_data);
+
+ArrowErrorCode ArrowBufferWriteChecked(struct ArrowBuffer* buffer,
+                                       struct ArrowBufferView* new_data);
 
 /// }@
 

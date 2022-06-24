@@ -29,6 +29,7 @@ include_directories(src)
 add_library(
     nanoarrow
     src/nanoarrow/allocator.c
+    src/nanoarrow/buffer.c
     src/nanoarrow/error.c
     src/nanoarrow/metadata.c
     src/nanoarrow/schema.c
@@ -54,6 +55,7 @@ if (NANOARROW_BUILD_TESTS)
     enable_testing()
 
     add_executable(allocator_test src/nanoarrow/allocator_test.cc)
+    add_executable(buffer_test src/nanoarrow/buffer_test.cc)
     add_executable(error_test src/nanoarrow/error_test.cc)
     add_executable(metadata_test src/nanoarrow/metadata_test.cc)
     add_executable(schema_test src/nanoarrow/schema_test.cc)
@@ -66,6 +68,7 @@ if (NANOARROW_BUILD_TESTS)
     endif()
 
     target_link_libraries(allocator_test nanoarrow GTest::gtest_main arrow_shared arrow_testing_shared)
+    target_link_libraries(buffer_test nanoarrow GTest::gtest_main)
     target_link_libraries(error_test nanoarrow GTest::gtest_main)
     target_link_libraries(metadata_test nanoarrow GTest::gtest_main arrow_shared arrow_testing_shared)
     target_link_libraries(schema_test nanoarrow GTest::gtest_main arrow_shared arrow_testing_shared)
@@ -73,6 +76,7 @@ if (NANOARROW_BUILD_TESTS)
 
     include(GoogleTest)
     gtest_discover_tests(allocator_test)
+    gtest_discover_tests(buffer_test)
     gtest_discover_tests(error_test)
     gtest_discover_tests(metadata_test)
     gtest_discover_tests(schema_test)
