@@ -1,9 +1,9 @@
 
-# arrow-c
+# nanoarrow
 
-[![Codecov test coverage](https://codecov.io/gh/paleolimbot/arrow-c/branch/main/graph/badge.svg)](https://app.codecov.io/gh/paleolimbot/arrow-c?branch=main)
+[![Codecov test coverage](https://codecov.io/gh/paleolimbot/nanoarrow/branch/main/graph/badge.svg)](https://app.codecov.io/gh/paleolimbot/nanoarrow?branch=main)
 
-The arrow-c library is a set of helper functions to interpret and generate
+The nanoarrow library is a set of helper functions to interpret and generate
 [Arrow C Data Interface](https://arrow.apache.org/docs/format/CDataInterface.html)
 and [Arrow C Stream Interface](https://arrow.apache.org/docs/format/CStreamInterface.html)
 structures. The library is in active development and should currently be used only
@@ -30,7 +30,7 @@ support.
 
 ## Usage
 
-You can use arrow-c in your project in two ways:
+You can use nanoarrow in your project in two ways:
 
 1. Copy contents of the `src/nanoarrow/` into your favourite include directory and
    `#include <nanoarrow/nanoarrow.c>` somewhere in your project exactly once.
@@ -41,13 +41,13 @@ You can use arrow-c in your project in two ways:
 All public functions and types are declared in `nanoarrow/nanoarrow.h`.
 
 In all cases you will want to copy this project or pin your build to a specific commit
-since it will change rapidly and regularly. The arrow-c library does not and will
+since it will change rapidly and regularly. The nanoarrow library does not and will
 not provide ABI stability (i.e., you must vendor or link to a private version of
 the static library).
 
 ## Background
 
-The design of arrow-c reflects the needs of a few previous libraries/prototypes
+The design of nanoarrow reflects the needs of a few previous libraries/prototypes
 requiring a library with a similar scope:
 
 - DuckDB’s Arrow wrappers, the details of which are in a few places
@@ -58,7 +58,7 @@ requiring a library with a similar scope:
   along which a [C-only library](https://github.com/paleolimbot/narrow/tree/master/src/narrow)
   was prototyped.
 - An [R implementation of the draft GeoArrow specification](https://github.com/paleolimbot/geoarrow),
-  along which a [mostly header-only C++ library](https://github.com/paleolimbot/geoarrow-cpp/tree/main/src/geoarrow/internal/arrow-hpp)
+  along which a [mostly header-only C++ library](https://github.com/paleolimbot/geonanoarrowpp/tree/main/src/geoarrow/internal/arrow-hpp)
   was prototyped.
 - The [Arrow Database Connector](https://github.com/apache/arrow-adbc) C API, for which drivers
   in theory can be written in C (which is currently difficult in practice because of there
