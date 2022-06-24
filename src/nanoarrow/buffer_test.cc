@@ -76,7 +76,29 @@ TEST(BufferTest, BufferTestBasic) {
   EXPECT_EQ(buffer.size_bytes, 5);
   EXPECT_EQ(strncmp(reinterpret_cast<char*>(buffer.data), "12345", 5), 0);
 
+  // Free the buffer
   ArrowBufferRelease(&buffer);
+  EXPECT_EQ(buffer.data, nullptr);
+  EXPECT_EQ(buffer.capacity_bytes, 0);
+  EXPECT_EQ(buffer.size_bytes, 0);
+
+  // Transfer allocator with empty buffer
+  EXPECT_EQ(ArrowBufferSetAllocator(&buffer, ArrowBufferAllocatorDefault()), NANOARROW_OK);
+  EXPECT_EQ(buffer.data, nullptr);
+  EXPECT_EQ(buffer.capacity_bytes, 0);
+  EXPECT_EQ(buffer.size_bytes, 0);
 }
 
-TEST(BufferTest, BufferTestError) {}
+TEST(BufferTest, BufferTestError) {
+  struct ArrowBuffer buffer;
+  ArrowBufferInit(&buffer);
+  EXPECT_EQ(ArrowBufferReallocate(&buffer, std::numeric_limits<int64_t>::max()), ENOMEM);
+  EXPECT_EQ(ArrowBufferWriteChecked(&buffer, nullptr, std::numeric_limits<int64_t>::max()), ENOMEM);
+
+  ASSERT_EQ(ArrowBufferWriteChecked(&buffer, "abcd", 4), NANOARROW_OK);
+  struct ArrowBufferAllocator non_default_allocator;
+  memcpy(&non_default_allocator, ArrowBufferAllocatorDefault(), sizeof(struct ArrowBufferAllocator));
+  buffer.capacity_bytes = std::numeric_limits<int64_t>::max();
+
+  EXPECT_EQ(ArrowBufferSetAllocator(&buffer, &non_default_allocator), ENOMEM);
+}

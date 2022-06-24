@@ -101,12 +101,7 @@ ArrowErrorCode ArrowBufferReserve(struct ArrowBuffer* buffer,
 
 ArrowErrorCode ArrowBufferReserveAdditional(struct ArrowBuffer* buffer,
                                             int64_t additional_size_bytes) {
-  int result = ArrowBufferReserve(buffer, buffer->size_bytes + additional_size_bytes);
-  if (result != NANOARROW_OK) {
-    return result;
-  }
-
-  return NANOARROW_OK;
+  return ArrowBufferReserve(buffer, buffer->size_bytes + additional_size_bytes);
 }
 
 void ArrowBufferWrite(struct ArrowBuffer* buffer, const void* data, int64_t size_bytes) {
