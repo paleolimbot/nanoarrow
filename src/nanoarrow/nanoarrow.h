@@ -279,6 +279,15 @@ enum ArrowTimeUnit {
 /// Initializes the fields and release callback of schema_out.
 ArrowErrorCode ArrowSchemaInit(struct ArrowSchema* schema, enum ArrowType type);
 
+ArrowErrorCode ArrowSchemaSetFixedSize(struct ArrowSchema* schema, int32_t fixed_size);
+ArrowErrorCode ArrowSchemaSetDecimalPrecision(struct ArrowSchema* schema,
+                                              int32_t decimal_precision,
+                                              int32_t decimal_scale);
+ArrowErrorCode ArrowSchemaSetTimeUnit(struct ArrowSchema* schema,
+                                      enum ArrowTimeUnit time_unit);
+ArrowErrorCode ArrowSchemaSetTimezone(struct ArrowSchema* schema,
+                                      struct ArrowStringView* timezone);
+
 /// \brief Make a (recursive) copy of a schema
 ///
 /// Allocates and copies fields of schema into schema_out.
