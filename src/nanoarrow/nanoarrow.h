@@ -211,17 +211,6 @@ struct ArrowStringView {
   int64_t n_bytes;
 };
 
-/// \brief An non-owning view of a buffer
-struct ArrowBufferView {
-  /// \brief A pointer to the start of the buffer
-  ///
-  /// If n_bytes is 0, this value may be NULL.
-  const uint8_t* data;
-
-  /// \brief The size of the buffer in bytes
-  int64_t n_bytes;
-};
-
 /// \brief Arrow type enumerator
 ///
 /// These names are intended to map to the corresponding arrow::Type::type
