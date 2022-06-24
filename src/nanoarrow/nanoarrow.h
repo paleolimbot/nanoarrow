@@ -217,6 +217,7 @@ struct ArrowStringView {
 /// enumerator; however, the numeric values are specifically not equal
 /// (i.e., do not rely on numeric comparison).
 enum ArrowType {
+  NANOARROW_TYPE_INVALID = 0,
   NANOARROW_TYPE_NA = 1,
   NANOARROW_TYPE_BOOL,
   NANOARROW_TYPE_UINT8,
@@ -276,9 +277,9 @@ enum ArrowTimeUnit {
 /// \brief Initialize the fields of a schema
 ///
 /// Initializes the fields and release callback of schema_out.
-ArrowErrorCode ArrowSchemaInit(struct ArrowSchema* schema_out);
+ArrowErrorCode ArrowSchemaInit(struct ArrowSchema* schema, enum ArrowType type);
 
-/// \brief Make a (full) copy of a schema
+/// \brief Make a (recursive) copy of a schema
 ///
 /// Allocates and copies fields of schema into schema_out.
 ArrowErrorCode ArrowSchemaDeepCopy(struct ArrowSchema* schema,

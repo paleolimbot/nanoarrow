@@ -62,7 +62,56 @@ void ArrowSchemaRelease(struct ArrowSchema* schema) {
   schema->release = NULL;
 }
 
-int ArrowSchemaInit(struct ArrowSchema* schema) {
+const char* ArrowSchemaFormatTemplate(enum ArrowType data_type) {
+  switch (data_type) {
+    case NANOARROW_TYPE_INVALID: return NULL;
+    case NANOARROW_TYPE_NA: return "n";
+    case NANOARROW_TYPE_BOOL: return "b";
+
+    case NANOARROW_TYPE_UINT8: return "c";
+    case NANOARROW_TYPE_INT8: return "C";
+    case NANOARROW_TYPE_UINT16: return "s";
+    case NANOARROW_TYPE_INT16: return "S";
+    case NANOARROW_TYPE_UINT32: return "i";
+    case NANOARROW_TYPE_INT32: return "I";
+    case NANOARROW_TYPE_UINT64: return "l";
+    case NANOARROW_TYPE_INT64: return "L";
+
+    case NANOARROW_TYPE_HALF_FLOAT: return "e";
+    case NANOARROW_TYPE_FLOAT: return "f";
+    case NANOARROW_TYPE_DOUBLE: return "g";
+    case NANOARROW_TYPE_DECIMAL128: return "d:1,1";
+    case NANOARROW_TYPE_DECIMAL256: return "d:1,1,256";
+
+    case NANOARROW_TYPE_STRING: return "u";
+    case NANOARROW_TYPE_LARGE_STRING: return "U";
+    case NANOARROW_TYPE_BINARY: return "z";
+    case NANOARROW_TYPE_LARGE_BINARY: return "Z";
+    case NANOARROW_TYPE_FIXED_SIZE_BINARY: return "w:1";
+
+    case NANOARROW_TYPE_DATE32: return "tdD";
+    case NANOARROW_TYPE_DATE64: return "tdm";
+    case NANOARROW_TYPE_TIME32: return "tts";
+    case NANOARROW_TYPE_TIME64: return "ttu";
+    case NANOARROW_TYPE_TIMESTAMP: return "tss";
+    case NANOARROW_TYPE_DURATION: return "tDs";
+    case NANOARROW_TYPE_INTERVAL_MONTHS: return "tiM";
+    case NANOARROW_TYPE_INTERVAL_DAY_TIME: return "tiD";
+    case NANOARROW_TYPE_INTERVAL_MONTH_DAY_NANO: return "tin";
+
+    case NANOARROW_TYPE_LIST: return "+l";
+    case NANOARROW_TYPE_LARGE_LIST: return "+L";
+    case NANOARROW_TYPE_FIXED_SIZE_LIST: return "+w:1";
+    case NANOARROW_TYPE_STRUCT: return "+s";
+    case NANOARROW_TYPE_SPARSE_UNION: return "+us:";
+    case NANOARROW_TYPE_DENSE_UNION: return "+ud:";
+    case NANOARROW_TYPE_MAP: return "+m";
+
+    default: return NULL;
+  }
+}
+
+ArrowErrorCode ArrowSchemaInit(struct ArrowSchema* schema, enum ArrowType data_type) {
   schema->format = NULL;
   schema->name = NULL;
   schema->metadata = NULL;
@@ -75,7 +124,16 @@ int ArrowSchemaInit(struct ArrowSchema* schema) {
 
   // We don't allocate the dictionary because it has to be nullptr
   // for non-dictionary-encoded arrays.
-  return NANOARROW_OK;
+
+  // Set the format to *a* valid format string for data_type
+  ArrowSchemaSetFormat(schema, ArrowSchemaFormatTemplate(data_type));
+
+  // If data_type isn't recognized and not explicitly unset
+  if (schema->format == NULL && data_type != NANOARROW_TYPE_INVALID) {
+    return EINVAL;
+  } else {
+    return NANOARROW_OK;
+  }
 }
 
 ArrowErrorCode ArrowSchemaSetFormat(struct ArrowSchema* schema, const char* format) {
@@ -186,7 +244,7 @@ ArrowErrorCode ArrowSchemaAllocateDictionary(struct ArrowSchema* schema) {
 
 int ArrowSchemaDeepCopy(struct ArrowSchema* schema, struct ArrowSchema* schema_out) {
   int result;
-  result = ArrowSchemaInit(schema_out);
+  result = ArrowSchemaInit(schema_out, NANOARROW_TYPE_NA);
   if (result != NANOARROW_OK) {
     return result;
   }
