@@ -22,12 +22,12 @@
 
 #include "nanoarrow.h"
 
-ArrowErrorCode ArrowBufferInit(struct ArrowBuffer* buffer) {
+void ArrowBufferInit(struct ArrowBuffer* buffer) {
   buffer->data = NULL;
   buffer->size_bytes = 0;
   buffer->capacity_bytes = 0;
+  buffer->growth_factor = 2;
   buffer->allocator = ArrowBufferAllocatorDefault();
-  return NANOARROW_OK;
 }
 
 ArrowErrorCode ArrowBufferSetAllocator(struct ArrowBuffer* buffer,
@@ -61,7 +61,28 @@ void ArrowBufferRelease(struct ArrowBuffer* buffer) {
   if (buffer->data != NULL) {
     buffer->allocator->free(buffer->allocator, (uint8_t*)buffer->data,
                             buffer->capacity_bytes);
+    buffer->data = NULL;
+    buffer->capacity_bytes = 0;
+    buffer->size_bytes = 0;
   }
+}
+
+ArrowErrorCode ArrowBufferReallocate(struct ArrowBuffer* buffer, int64_t capacity_bytes) {
+  buffer->data = buffer->allocator->reallocate(buffer->allocator, buffer->data,
+                                               buffer->capacity_bytes, capacity_bytes);
+  if (buffer->data == NULL) {
+    buffer->capacity_bytes = 0;
+    buffer->size_bytes = 0;
+    return ENOMEM;
+  }
+
+  buffer->capacity_bytes = capacity_bytes;
+
+  if (capacity_bytes < buffer->size_bytes) {
+    buffer->size_bytes = capacity_bytes;
+  }
+
+  return NANOARROW_OK;
 }
 
 ArrowErrorCode ArrowBufferReserve(struct ArrowBuffer* buffer,
@@ -72,14 +93,10 @@ ArrowErrorCode ArrowBufferReserve(struct ArrowBuffer* buffer,
       new_capacity = min_capacity_bytes;
     }
 
-    buffer->data = buffer->allocator->reallocate(buffer->allocator, buffer->data,
-                                                 buffer->capacity_bytes, new_capacity);
-    if (buffer->data == NULL) {
-      return ENOMEM;
-    }
+    return ArrowBufferReallocate(buffer, new_capacity);
+  } else {
+    return NANOARROW_OK;
   }
-
-  return NANOARROW_OK;
 }
 
 ArrowErrorCode ArrowBufferReserveAdditional(struct ArrowBuffer* buffer,
@@ -92,20 +109,20 @@ ArrowErrorCode ArrowBufferReserveAdditional(struct ArrowBuffer* buffer,
   return NANOARROW_OK;
 }
 
-void ArrowBufferWrite(struct ArrowBuffer* buffer, struct ArrowBufferView* new_data) {
-  if (new_data->n_bytes > 0) {
-    memcpy(buffer->data, new_data->data, new_data->n_bytes);
-    buffer->size_bytes += new_data->n_bytes;
+void ArrowBufferWrite(struct ArrowBuffer* buffer, const void* data, int64_t size_bytes) {
+  if (size_bytes > 0) {
+    memcpy(buffer->data + buffer->size_bytes, data, size_bytes);
+    buffer->size_bytes += size_bytes;
   }
 }
 
-ArrowErrorCode ArrowBufferWriteChecked(struct ArrowBuffer* buffer,
-                                       struct ArrowBufferView* new_data) {
-  int result = ArrowBufferReserveAdditional(buffer, new_data->n_bytes);
+ArrowErrorCode ArrowBufferWriteChecked(struct ArrowBuffer* buffer, const void* data,
+                                       int64_t size_bytes) {
+  int result = ArrowBufferReserveAdditional(buffer, size_bytes);
   if (result != NANOARROW_OK) {
     return result;
   }
 
-  ArrowBufferWrite(buffer, new_data);
+  ArrowBufferWrite(buffer, data, size_bytes);
   return NANOARROW_OK;
 }

@@ -23,8 +23,42 @@
 
 #include "nanoarrow/nanoarrow.h"
 
-TEST(BufferBuilderTest, BufferBuilderTestInitRelease) {
-  ArrowError error;
-  EXPECT_EQ(ArrowErrorSet(&error, "there were %d foxes", 4), NANOARROW_OK);
-  EXPECT_STREQ(ArrowErrorMessage(&error), "there were 4 foxes");
+TEST(BufferTest, BufferTestBasic) {
+  struct ArrowBuffer buffer;
+
+  // Init
+  ArrowBufferInit(&buffer);
+  EXPECT_EQ(buffer.data, nullptr);
+  EXPECT_EQ(buffer.capacity_bytes, 0);
+  EXPECT_EQ(buffer.size_bytes, 0);
+
+  // Reserve where capacity > current_capacity * growth_factor
+  ArrowBufferReserveAdditional(&buffer, 10);
+  EXPECT_NE(buffer.data, nullptr);
+  EXPECT_EQ(buffer.capacity_bytes, 10);
+  EXPECT_EQ(buffer.size_bytes, 0);
+
+  // Write without triggering a realloc
+  uint8_t* first_data = buffer.data;
+  EXPECT_EQ(ArrowBufferWriteChecked(&buffer, "1234567890", 10), NANOARROW_OK);
+  EXPECT_EQ(buffer.data, first_data);
+  EXPECT_EQ(buffer.capacity_bytes, 10);
+  EXPECT_EQ(buffer.size_bytes, 10);
+
+  // Write triggering a realloc
+  EXPECT_EQ(ArrowBufferWriteChecked(&buffer, "1", 2), NANOARROW_OK);
+  EXPECT_NE(buffer.data, first_data);
+  EXPECT_EQ(buffer.capacity_bytes, 22);
+  EXPECT_EQ(buffer.size_bytes, 12);
+  EXPECT_STREQ(reinterpret_cast<char*>(buffer.data), "12345678901");
+
+  // Shrink capacity
+  EXPECT_EQ(ArrowBufferReallocate(&buffer, 5), NANOARROW_OK);
+  EXPECT_EQ(buffer.capacity_bytes, 5);
+  EXPECT_EQ(buffer.size_bytes, 5);
+  EXPECT_EQ(strncmp(reinterpret_cast<char*>(buffer.data), "12345", 5), 0);
+
+  ArrowBufferRelease(&buffer);
 }
+
+TEST(BufferTest, BufferTestError) {}
