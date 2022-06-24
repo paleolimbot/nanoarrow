@@ -17,7 +17,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt-get install -y cmake
+          sudo apt-get install -y cmake valgrind
 
       - name: Cache Dependency Builds
         id: cache-deps-build
@@ -85,6 +85,11 @@ jobs:
         run: |
           cd build
           ctest -T test --output-on-failure .
+
+      - name: Run tests with valgrind
+        run: |
+          cd build
+          valgrind --tool=memcheck --leak-check=full ctest -T test .
 
       - name: Calculate coverage
         run: |

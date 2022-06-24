@@ -15,6 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
+#include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
@@ -22,14 +23,20 @@
 #include "arrowc.h"
 
 int ArrowErrorSet(struct ArrowError* error, const char* fmt, ...) {
-  memset(error->message, 0, 1024);
+  memset(error->message, 0, sizeof(error->message));
 
   va_list args;
   va_start(args, fmt);
-  int result = vsnprintf(error->message, 1024 - 1, fmt, args);
+  int chars_needed = vsnprintf(error->message, sizeof(error->message), fmt, args);
   va_end(args);
 
-  return 0;
+  if (chars_needed < 0) {
+    return EINVAL;
+  } else if (chars_needed >= sizeof(error->message)) {
+    return ERANGE;
+  } else {
+    return ARROWC_OK;
+  }
 }
 
 const char* ArrowErrorMessage(struct ArrowError* error) { return error->message; }

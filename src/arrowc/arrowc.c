@@ -15,6 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
+#include "allocator.c"
 #include "error.c"
 #include "metadata.c"
 #include "schema.c"

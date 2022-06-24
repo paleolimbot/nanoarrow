@@ -71,8 +71,6 @@ struct ArrowArray {
 
 #endif  // ARROW_C_DATA_INTERFACE
 
-// EXPERIMENTAL: C stream interface
-
 #ifndef ARROW_C_STREAM_INTERFACE
 #define ARROW_C_STREAM_INTERFACE
 
@@ -128,18 +126,47 @@ struct ArrowArrayStream {
 /// definitions and encourages clients to stack or statically allocate
 /// where convenient.
 
-/// \defgroup arrowc-malloc Low-level memory management
-/// Configure malloc(), realloc(), and free() as compile-time constants.
+/// \defgroup arrowc-malloc Memory management
+///
+/// Non-buffer members of a struct ArrowSchema and struct ArrowArray
+/// must be allocated using ArrowMalloc() or ArrowRealloc() and freed
+/// using ArrowFree for schemas and arrays allocated here. Buffer members
+/// are allocated using an ArrowBufferAllocator.
 
-#ifndef ARROWC_MALLOC
-/// Allocate like malloc()
-#define ARROWC_MALLOC(size) malloc(size)
-#endif
+/// \brief Allocate like malloc()
+void* ArrowMalloc(int64_t size);
 
-#ifndef ARROWC_FREE
-/// Free memory allocated via malloc() or realloc()
-#define ARROWC_FREE(ptr) free(ptr)
-#endif
+/// \brief Reallocate like realloc()
+void* ArrowRealloc(void* ptr, int64_t size);
+
+/// \brief Free a pointer allocated using ArrowMalloc() or ArrowRealloc().
+void ArrowFree(void* ptr);
+
+/// \brief Array buffer allocation and deallocation
+///
+/// Container for allocate, reallocate, and free methods that can be used
+/// to customize allocation and deallocation of buffers when constructing
+/// an ArrowArray.
+struct ArrowBufferAllocator {
+  /// \brief Allocate a buffer or return NULL if it cannot be allocated
+  uint8_t* (*allocate)(struct ArrowBufferAllocator* allocator, int64_t size);
+
+  /// \brief Reallocate a buffer or return NULL if it cannot be reallocated
+  uint8_t* (*reallocate)(struct ArrowBufferAllocator* allocator, uint8_t* ptr,
+                         int64_t old_size, int64_t new_size);
+
+  /// \brief Deallocate a buffer allocated by this allocator
+  void (*free)(struct ArrowBufferAllocator* allocator, uint8_t* ptr, int64_t size);
+
+  /// \brief Opaque data specific to the allocator
+  void* private_data;
+};
+
+/// \brief Return the default allocator
+///
+/// The default allocator uses ArrowMalloc(), ArrowRealloc(), and
+/// ArrowFree().
+struct ArrowBufferAllocator* ArrowBufferAllocatorDefault();
 
 /// }@
 
