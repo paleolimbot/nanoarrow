@@ -27,7 +27,7 @@ int ArrowErrorSet(struct ArrowError* error, const char* fmt, ...) {
 
   va_list args;
   va_start(args, fmt);
-  int chars_needed = vsnprintf(error->message, sizeof(error->message) - 1, fmt, args);
+  int chars_needed = vsnprintf(error->message, sizeof(error->message), fmt, args);
   va_end(args);
 
   if (chars_needed < 0) {
