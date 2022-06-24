@@ -33,7 +33,7 @@ TEST(BufferTest, BufferTestBasic) {
   EXPECT_EQ(buffer.size_bytes, 0);
 
   // Reserve where capacity > current_capacity * growth_factor
-  ArrowBufferReserveAdditional(&buffer, 10);
+  EXPECT_EQ(ArrowBufferReserveAdditional(&buffer, 10), NANOARROW_OK);
   EXPECT_NE(buffer.data, nullptr);
   EXPECT_EQ(buffer.capacity_bytes, 10);
   EXPECT_EQ(buffer.size_bytes, 0);
