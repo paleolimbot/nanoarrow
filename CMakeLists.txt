@@ -18,7 +18,7 @@
 message(STATUS "Building using CMake version: ${CMAKE_VERSION}")
 cmake_minimum_required(VERSION 3.14)
 
-project(ArrowC)
+project(NanoArrow)
 
 option(NANOARROW_BUILD_TESTS "Build tests" OFF)
 
