@@ -21,7 +21,7 @@
 #include <arrow/testing/gtest_util.h>
 #include <arrow/util/key_value_metadata.h>
 
-#include "arrowc/arrowc.h"
+#include "nanoarrow/nanoarrow.h"
 
 using namespace arrow;
 
@@ -61,7 +61,7 @@ TEST(SchemaViewTest, SchemaViewInitErrors) {
   schema.release(&schema);
 }
 
-void ExpectSimpleTypeOk(std::shared_ptr<DataType> arrow_t, enum ArrowType arrowc_t) {
+void ExpectSimpleTypeOk(std::shared_ptr<DataType> arrow_t, enum ArrowType nanoarrow_t) {
   struct ArrowSchema schema;
   struct ArrowSchemaView schema_view;
   struct ArrowError error;
@@ -71,8 +71,8 @@ void ExpectSimpleTypeOk(std::shared_ptr<DataType> arrow_t, enum ArrowType arrowc
   EXPECT_EQ(schema_view.n_buffers, 2);
   EXPECT_EQ(schema_view.validity_buffer_id, 0);
   EXPECT_EQ(schema_view.data_buffer_id, 1);
-  EXPECT_EQ(schema_view.data_type, arrowc_t);
-  EXPECT_EQ(schema_view.storage_data_type, arrowc_t);
+  EXPECT_EQ(schema_view.data_type, nanoarrow_t);
+  EXPECT_EQ(schema_view.storage_data_type, nanoarrow_t);
   schema.release(&schema);
 }
 

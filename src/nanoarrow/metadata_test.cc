@@ -21,7 +21,7 @@
 #include <arrow/testing/gtest_util.h>
 #include <arrow/util/key_value_metadata.h>
 
-#include "arrowc/arrowc.h"
+#include "nanoarrow/nanoarrow.h"
 
 using namespace arrow;
 

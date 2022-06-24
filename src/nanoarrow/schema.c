@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "arrowc.h"
+#include "nanoarrow.h"
 
 void ArrowSchemaRelease(struct ArrowSchema* schema) {
   if (schema->format != NULL) ArrowFree((void*)schema->format);

@@ -27,14 +27,14 @@ add_library(coverage_config INTERFACE)
 
 include_directories(src)
 add_library(
-    arrowc
-    src/arrowc/allocator.c
-    src/arrowc/error.c
-    src/arrowc/metadata.c
-    src/arrowc/schema.c
-    src/arrowc/schema_view.c)
+    nanoarrow
+    src/nanoarrow/allocator.c
+    src/nanoarrow/error.c
+    src/nanoarrow/metadata.c
+    src/nanoarrow/schema.c
+    src/nanoarrow/schema_view.c)
 
-install(TARGETS arrowc DESTINATION lib)
+install(TARGETS nanoarrow DESTINATION lib)
 install(DIRECTORY src/ DESTINATION include FILES_MATCHING PATTERN "*.h")
 install(DIRECTORY src/ DESTINATION include FILES_MATCHING PATTERN "*.c")
 
@@ -53,23 +53,23 @@ if (NANOARROW_BUILD_TESTS)
     find_package(GTest REQUIRED)
     enable_testing()
 
-    add_executable(allocator_test src/arrowc/allocator_test.cc)
-    add_executable(error_test src/arrowc/error_test.cc)
-    add_executable(metadata_test src/arrowc/metadata_test.cc)
-    add_executable(schema_test src/arrowc/schema_test.cc)
-    add_executable(schema_view_test src/arrowc/schema_view_test.cc)
+    add_executable(allocator_test src/nanoarrow/allocator_test.cc)
+    add_executable(error_test src/nanoarrow/error_test.cc)
+    add_executable(metadata_test src/nanoarrow/metadata_test.cc)
+    add_executable(schema_test src/nanoarrow/schema_test.cc)
+    add_executable(schema_view_test src/nanoarrow/schema_view_test.cc)
 
     if (NANOARROW_CODE_COVERAGE)
         target_compile_options(coverage_config INTERFACE -O0 -g --coverage)
         target_link_options(coverage_config INTERFACE --coverage)
-        target_link_libraries(arrowc coverage_config)
+        target_link_libraries(nanoarrow coverage_config)
     endif()
 
-    target_link_libraries(allocator_test arrowc GTest::gtest_main arrow_shared arrow_testing_shared)
-    target_link_libraries(error_test arrowc GTest::gtest_main)
-    target_link_libraries(metadata_test arrowc GTest::gtest_main arrow_shared arrow_testing_shared)
-    target_link_libraries(schema_test arrowc GTest::gtest_main arrow_shared arrow_testing_shared)
-    target_link_libraries(schema_view_test arrowc GTest::gtest_main arrow_shared arrow_testing_shared)
+    target_link_libraries(allocator_test nanoarrow GTest::gtest_main arrow_shared arrow_testing_shared)
+    target_link_libraries(error_test nanoarrow GTest::gtest_main)
+    target_link_libraries(metadata_test nanoarrow GTest::gtest_main arrow_shared arrow_testing_shared)
+    target_link_libraries(schema_test nanoarrow GTest::gtest_main arrow_shared arrow_testing_shared)
+    target_link_libraries(schema_view_test nanoarrow GTest::gtest_main arrow_shared arrow_testing_shared)
 
     include(GoogleTest)
     gtest_discover_tests(allocator_test)

@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "arrowc.h"
+#include "nanoarrow.h"
 
 int ArrowErrorSet(struct ArrowError* error, const char* fmt, ...) {
   memset(error->message, 0, sizeof(error->message));

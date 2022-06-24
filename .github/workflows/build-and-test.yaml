@@ -74,7 +74,7 @@ jobs:
           cd ../googletest
           cmake --install . --prefix ../../dist
 
-      - name: Build arrowc
+      - name: Build nanoarrow
         run: |
           mkdir build
           cd build
@@ -96,7 +96,7 @@ jobs:
           SOURCE_PREFIX=`pwd`
           mkdir build/cov
           cd build/cov
-          gcov -abcfu --source-prefix=$SOURCE_PREFIX `find ../CMakeFiles/arrowc.dir/ -name "*.gcno"`
+          gcov -abcfu --source-prefix=$SOURCE_PREFIX `find ../CMakeFiles/nanoarrow.dir/ -name "*.gcno"`
 
       - name: Upload coverage
         uses: codecov/codecov-action@v2

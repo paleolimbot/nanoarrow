@@ -21,7 +21,7 @@
 #include <arrow/memory_pool.h>
 #include <gtest/gtest.h>
 
-#include "arrowc/arrowc.h"
+#include "nanoarrow/nanoarrow.h"
 
 using namespace arrow;
 

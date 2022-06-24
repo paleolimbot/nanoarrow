@@ -18,7 +18,7 @@
 #include <errno.h>
 #include <string.h>
 
-#include "arrowc.h"
+#include "nanoarrow.h"
 
 static void ArrowSchemaViewSetPrimitive(struct ArrowSchemaView* schema_view,
                                         enum ArrowType data_type) {

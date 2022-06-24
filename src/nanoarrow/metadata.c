@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "arrowc.h"
+#include "nanoarrow.h"
 
 ArrowErrorCode ArrowMetadataReaderInit(struct ArrowMetadataReader* reader,
                                        const char* metadata) {

@@ -126,7 +126,7 @@ struct ArrowArrayStream {
 /// definitions and encourages clients to stack or statically allocate
 /// where convenient.
 
-/// \defgroup arrowc-malloc Memory management
+/// \defgroup nanoarrow-malloc Memory management
 ///
 /// Non-buffer members of a struct ArrowSchema and struct ArrowArray
 /// must be allocated using ArrowMalloc() or ArrowRealloc() and freed
@@ -170,7 +170,7 @@ struct ArrowBufferAllocator* ArrowBufferAllocatorDefault();
 
 /// }@
 
-/// \defgroup arrowc-errors Error handling primitives
+/// \defgroup nanoarrow-errors Error handling primitives
 /// Functions generally return an errno-compatible error code; functions that
 /// need to communicate more verbose error information accept a pointer
 /// to an ArrowError. This can be stack or statically allocated. The
@@ -196,7 +196,7 @@ const char* ArrowErrorMessage(struct ArrowError* error);
 
 /// }@
 
-/// \defgroup arrowc-utils Utility data structures
+/// \defgroup nanoarrow-utils Utility data structures
 
 /// \brief An non-owning view of a string
 struct ArrowStringView {
@@ -270,7 +270,7 @@ enum ArrowTimeUnit {
 
 /// }@
 
-/// \defgroup arrowc-schema Schema producer helpers
+/// \defgroup nanoarrow-schema Schema producer helpers
 /// These functions allocate, copy, and destroy ArrowSchema structures
 
 /// \brief Initialize the fields of a schema
@@ -345,7 +345,7 @@ ArrowErrorCode ArrowMetadataGetValue(const char* metadata, const char* key,
 
 /// }@
 
-/// \defgroup arrowc-schema-view Schema consumer helpers
+/// \defgroup nanoarrow-schema-view Schema consumer helpers
 
 /// \brief A non-owning view of a parsed ArrowSchema
 ///

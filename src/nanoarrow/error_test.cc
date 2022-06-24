@@ -21,7 +21,7 @@
 
 #include <gtest/gtest.h>
 
-#include "arrowc/arrowc.h"
+#include "nanoarrow/nanoarrow.h"
 
 TEST(ErrorTest, ErrorTestSet) {
   ArrowError error;
