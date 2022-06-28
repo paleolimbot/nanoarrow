@@ -491,7 +491,7 @@ void ArrowBufferInit(struct ArrowBuffer* buffer);
 ArrowErrorCode ArrowBufferSetAllocator(struct ArrowBuffer* buffer,
                                        struct ArrowBufferAllocator* allocator);
 
-/// \brief Release an ArrowBufferBuilder
+/// \brief Release an ArrowBuffer
 ///
 /// Releases the buffer using the allocator's free method if
 /// the buffer's data member is non-null.
