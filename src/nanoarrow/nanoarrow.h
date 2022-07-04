@@ -469,10 +469,7 @@ struct ArrowBuffer {
   /// \brief The capacity of the buffer in bytes
   int64_t capacity_bytes;
 
-  /// \brief Factor by which to grow the buffer when reallocating
-  double growth_factor;
-
-  /// \brief The allocator that may be used to reallocate or free the buffer
+  /// \brief The allocator that will be used to reallocate and/or free the buffer
   struct ArrowBufferAllocator* allocator;
 };
 
@@ -482,12 +479,9 @@ struct ArrowBuffer {
 /// buffer allocator.
 void ArrowBufferInit(struct ArrowBuffer* buffer);
 
-/// \brief Transfer responsibility for buffer to a given allocator
+/// \brief Set a newly-initialized buffer's allocator
 ///
-/// If allocator points to a different allocator than the buffer's
-/// allocator member, the buffer will be reallocated with the new
-/// allocator and the old buffer freed. If the allocator points to the
-/// same allocator no action is taken.
+/// Returns EINVAL if the buffer has already been allocated.
 ArrowErrorCode ArrowBufferSetAllocator(struct ArrowBuffer* buffer,
                                        struct ArrowBufferAllocator* allocator);
 
@@ -498,27 +492,25 @@ ArrowErrorCode ArrowBufferSetAllocator(struct ArrowBuffer* buffer,
 void ArrowBufferRelease(struct ArrowBuffer* buffer);
 
 /// \brief Grow or shrink a buffer to a given capacity
-ArrowErrorCode ArrowBufferReallocate(struct ArrowBuffer* buffer,
-                                     int64_t min_capacity_bytes);
-
-/// \brief Ensure a buffer has at least a given capacity
-ArrowErrorCode ArrowBufferReserve(struct ArrowBuffer* buffer, int64_t min_capacity_bytes);
+ArrowErrorCode ArrowBufferResize(struct ArrowBuffer* buffer, int64_t new_capacity_bytes,
+                                 char shrink_to_fit);
 
 /// \brief Ensure a buffer has at least a given additional capacity
-ArrowErrorCode ArrowBufferReserveAdditional(struct ArrowBuffer* buffer,
-                                            int64_t additional_size_bytes);
+ArrowErrorCode ArrowBufferReserve(struct ArrowBuffer* buffer,
+                                  int64_t additional_size_bytes);
 
 /// \brief Write data to buffer and increment the buffer size
 ///
 /// This function does not check that buffer has the required capacity
-void ArrowBufferWrite(struct ArrowBuffer* buffer, const void* data, int64_t size_bytes);
+void ArrowBufferAppendUnsafe(struct ArrowBuffer* buffer, const void* data,
+                             int64_t size_bytes);
 
 /// \brief Write data to buffer and increment the buffer size
 ///
 /// This function writes and ensures that the buffer has the required capacity,
 /// possibly by reallocating the buffer.
-ArrowErrorCode ArrowBufferWriteChecked(struct ArrowBuffer* buffer, const void* data,
-                                       int64_t size_bytes);
+ArrowErrorCode ArrowBufferAppend(struct ArrowBuffer* buffer, const void* data,
+                                 int64_t size_bytes);
 
 /// }@
 

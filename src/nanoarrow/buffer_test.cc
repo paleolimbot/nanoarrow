@@ -67,46 +67,27 @@ TEST(BufferTest, BufferTestBasic) {
   EXPECT_EQ(buffer.size_bytes, 0);
 
   // Reserve where capacity > current_capacity * growth_factor
-  EXPECT_EQ(ArrowBufferReserveAdditional(&buffer, 10), NANOARROW_OK);
+  EXPECT_EQ(ArrowBufferReserve(&buffer, 10), NANOARROW_OK);
   EXPECT_NE(buffer.data, nullptr);
   EXPECT_EQ(buffer.capacity_bytes, 10);
   EXPECT_EQ(buffer.size_bytes, 0);
 
   // Write without triggering a realloc
   uint8_t* first_data = buffer.data;
-  EXPECT_EQ(ArrowBufferWriteChecked(&buffer, "1234567890", 10), NANOARROW_OK);
+  EXPECT_EQ(ArrowBufferAppend(&buffer, "1234567890", 10), NANOARROW_OK);
   EXPECT_EQ(buffer.data, first_data);
   EXPECT_EQ(buffer.capacity_bytes, 10);
   EXPECT_EQ(buffer.size_bytes, 10);
 
   // Write triggering a realloc
-  EXPECT_EQ(ArrowBufferWriteChecked(&buffer, "1", 2), NANOARROW_OK);
+  EXPECT_EQ(ArrowBufferAppend(&buffer, "1", 2), NANOARROW_OK);
   EXPECT_NE(buffer.data, first_data);
-  EXPECT_EQ(buffer.capacity_bytes, 22);
+  EXPECT_EQ(buffer.capacity_bytes, 20);
   EXPECT_EQ(buffer.size_bytes, 12);
   EXPECT_STREQ(reinterpret_cast<char*>(buffer.data), "12345678901");
 
   // Shrink capacity
-  EXPECT_EQ(ArrowBufferReallocate(&buffer, 5), NANOARROW_OK);
-  EXPECT_EQ(buffer.capacity_bytes, 5);
-  EXPECT_EQ(buffer.size_bytes, 5);
-  EXPECT_EQ(strncmp(reinterpret_cast<char*>(buffer.data), "12345", 5), 0);
-
-  // Transfer responsibility to the same allocator
-  first_data = buffer.data;
-  EXPECT_EQ(ArrowBufferSetAllocator(&buffer, buffer.allocator), NANOARROW_OK);
-  EXPECT_EQ(buffer.data, first_data);
-  EXPECT_EQ(buffer.capacity_bytes, 5);
-  EXPECT_EQ(buffer.size_bytes, 5);
-  EXPECT_EQ(strncmp(reinterpret_cast<char*>(buffer.data), "12345", 5), 0);
-
-  // Transfer responsibility to another allocator
-  struct ArrowBufferAllocator non_default_allocator;
-  memcpy(&non_default_allocator, ArrowBufferAllocatorDefault(),
-         sizeof(struct ArrowBufferAllocator));
-
-  EXPECT_EQ(ArrowBufferSetAllocator(&buffer, &non_default_allocator), NANOARROW_OK);
-  EXPECT_NE(buffer.data, first_data);
+  EXPECT_EQ(ArrowBufferResize(&buffer, 5, true), NANOARROW_OK);
   EXPECT_EQ(buffer.capacity_bytes, 5);
   EXPECT_EQ(buffer.size_bytes, 5);
   EXPECT_EQ(strncmp(reinterpret_cast<char*>(buffer.data), "12345", 5), 0);
@@ -128,16 +109,16 @@ TEST(BufferTest, BufferTestBasic) {
 TEST(BufferTest, BufferTestError) {
   struct ArrowBuffer buffer;
   ArrowBufferInit(&buffer);
-  EXPECT_EQ(ArrowBufferReallocate(&buffer, std::numeric_limits<int64_t>::max()), ENOMEM);
-  EXPECT_EQ(
-      ArrowBufferWriteChecked(&buffer, nullptr, std::numeric_limits<int64_t>::max()),
-      ENOMEM);
+  EXPECT_EQ(ArrowBufferResize(&buffer, std::numeric_limits<int64_t>::max(), false),
+            ENOMEM);
+  EXPECT_EQ(ArrowBufferAppend(&buffer, nullptr, std::numeric_limits<int64_t>::max()),
+            ENOMEM);
 
-  ASSERT_EQ(ArrowBufferWriteChecked(&buffer, "abcd", 4), NANOARROW_OK);
+  ASSERT_EQ(ArrowBufferAppend(&buffer, "abcd", 4), NANOARROW_OK);
   struct ArrowBufferAllocator non_default_allocator;
   memcpy(&non_default_allocator, ArrowBufferAllocatorDefault(),
          sizeof(struct ArrowBufferAllocator));
   buffer.capacity_bytes = std::numeric_limits<int64_t>::max();
 
-  EXPECT_EQ(ArrowBufferSetAllocator(&buffer, &non_default_allocator), ENOMEM);
+  EXPECT_EQ(ArrowBufferSetAllocator(&buffer, &non_default_allocator), EINVAL);
 }
