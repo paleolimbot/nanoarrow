@@ -276,14 +276,32 @@ enum ArrowTimeUnit {
 
 /// \brief Initialize the fields of a schema
 ///
-/// Initializes the fields and release callback of schema_out.
+/// Initializes the fields and release callback of schema_out. Caller
+/// is responsible for calling the schema->release callback if
+/// NANOARROW_OK is returned.
 ArrowErrorCode ArrowSchemaInit(struct ArrowSchema* schema, enum ArrowType type);
 
+/// \brief Initialize the fields of a fixed-size schema
+///
+/// Returns EINVAL for fixed_size <= 0 or for data_type that is not
+/// NANOARROW_TYPE_FIXED_SIZE_BINARY or NANOARROW_TYPE_FIXED_SIZE_LIST.
 ArrowErrorCode ArrowSchemaInitFixedSize(struct ArrowSchema* schema,
                                         enum ArrowType data_type, int32_t fixed_size);
+
+/// \brief Initialize the fields of a decimal schema
+///
+/// Returns EINVAL for scale <= 0 or for data_type that is not
+/// NANOARROW_TYPE_DECIMAL128 or NANOARROW_TYPE_DECIMAL256.
 ArrowErrorCode ArrowSchemaInitDecimal(struct ArrowSchema* schema,
                                       enum ArrowType data_type, int32_t decimal_precision,
                                       int32_t decimal_scale);
+
+/// \brief Initialize the fields of a time, timestamp, or duration schema
+///
+/// Returns EINVAL for data_type that is not
+/// NANOARROW_TYPE_TIME32, NANOARROW_TYPE_TIME64,
+/// NANOARROW_TYPE_TIMESTAMP, or NANOARROW_TYPE_DURATION. The
+/// timezone parameter must be NULL for a non-timestamp data_type.
 ArrowErrorCode ArrowSchemaInitDateTime(struct ArrowSchema* schema,
                                        enum ArrowType data_type,
                                        enum ArrowTimeUnit time_unit,
