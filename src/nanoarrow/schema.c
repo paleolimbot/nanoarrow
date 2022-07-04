@@ -176,6 +176,10 @@ ArrowErrorCode ArrowSchemaInit(struct ArrowSchema* schema, enum ArrowType data_t
 }
 
 ArrowErrorCode ArrowSchemaSetFixedSize(struct ArrowSchema* schema, int32_t fixed_size) {
+  if (fixed_size <= 0) {
+    return EINVAL;
+  }
+
   struct ArrowSchemaView schema_view;
   struct ArrowError error;
   int result = ArrowSchemaViewInit(&schema_view, schema, &error);
@@ -203,6 +207,10 @@ ArrowErrorCode ArrowSchemaSetFixedSize(struct ArrowSchema* schema, int32_t fixed
 ArrowErrorCode ArrowSchemaSetDecimalPrecisionScale(struct ArrowSchema* schema,
                                                    int32_t decimal_precision,
                                                    int32_t decimal_scale) {
+  if (decimal_precision <= 0) {
+    return EINVAL;
+  }
+
   struct ArrowSchemaView schema_view;
   struct ArrowError error;
   int result = ArrowSchemaViewInit(&schema_view, schema, &error);
@@ -265,7 +273,8 @@ ArrowErrorCode ArrowSchemaSetTimeUnit(struct ArrowSchema* schema,
       n_chars = snprintf(buffer, sizeof(buffer), "tt%s", time_unit_str);
       break;
     case NANOARROW_TYPE_TIMESTAMP:
-      n_chars = snprintf(buffer, sizeof(buffer), "ts%s", time_unit_str);
+      n_chars = snprintf(buffer, sizeof(buffer), "ts%s:%.*s", time_unit_str,
+                         (int)schema_view.timezone.n_bytes, schema_view.timezone.data);
       break;
     case NANOARROW_TYPE_DURATION:
       n_chars = snprintf(buffer, sizeof(buffer), "tD%s", time_unit_str);
