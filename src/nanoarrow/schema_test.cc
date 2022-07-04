@@ -42,6 +42,99 @@ TEST(SchemaTest, SchemaInit) {
   EXPECT_EQ(schema.release, nullptr);
 }
 
+static void ExpectSchemaInitOk(enum ArrowType data_type,
+                               std::shared_ptr<DataType> expected_arrow_type) {
+  struct ArrowSchema schema;
+  EXPECT_EQ(ArrowSchemaInit(&schema, data_type), NANOARROW_OK);
+  auto arrow_type = ImportType(&schema);
+  ARROW_EXPECT_OK(arrow_type);
+  EXPECT_TRUE(arrow_type.ValueUnsafe()->Equals(expected_arrow_type));
+}
+
+TEST(SchemaTest, SchemaInitSimple) {
+  ExpectSchemaInitOk(NANOARROW_TYPE_NA, null());
+  ExpectSchemaInitOk(NANOARROW_TYPE_BOOL, boolean());
+  ExpectSchemaInitOk(NANOARROW_TYPE_UINT8, uint8());
+  ExpectSchemaInitOk(NANOARROW_TYPE_INT8, int8());
+  ExpectSchemaInitOk(NANOARROW_TYPE_UINT16, uint16());
+  ExpectSchemaInitOk(NANOARROW_TYPE_INT16, int16());
+  ExpectSchemaInitOk(NANOARROW_TYPE_UINT32, uint32());
+  ExpectSchemaInitOk(NANOARROW_TYPE_INT32, int32());
+  ExpectSchemaInitOk(NANOARROW_TYPE_UINT64, uint64());
+  ExpectSchemaInitOk(NANOARROW_TYPE_INT64, int64());
+  ExpectSchemaInitOk(NANOARROW_TYPE_HALF_FLOAT, float16());
+  ExpectSchemaInitOk(NANOARROW_TYPE_FLOAT, float32());
+  ExpectSchemaInitOk(NANOARROW_TYPE_DOUBLE, float64());
+  ExpectSchemaInitOk(NANOARROW_TYPE_STRING, utf8());
+  ExpectSchemaInitOk(NANOARROW_TYPE_LARGE_STRING, large_utf8());
+  ExpectSchemaInitOk(NANOARROW_TYPE_BINARY, binary());
+  ExpectSchemaInitOk(NANOARROW_TYPE_LARGE_BINARY, large_binary());
+  ExpectSchemaInitOk(NANOARROW_TYPE_DATE32, date32());
+  ExpectSchemaInitOk(NANOARROW_TYPE_DATE64, date64());
+  ExpectSchemaInitOk(NANOARROW_TYPE_INTERVAL_MONTHS, month_interval());
+  ExpectSchemaInitOk(NANOARROW_TYPE_INTERVAL_DAY_TIME, day_time_interval());
+  ExpectSchemaInitOk(NANOARROW_TYPE_INTERVAL_MONTH_DAY_NANO, month_day_nano_interval());
+}
+
+TEST(SchemaTest, SchemaTestInitNestedList) {
+  struct ArrowSchema schema;
+
+  EXPECT_EQ(ArrowSchemaInit(&schema, NANOARROW_TYPE_LIST), NANOARROW_OK);
+  EXPECT_STREQ(schema.format, "+l");
+  ASSERT_EQ(ArrowSchemaAllocateChildren(&schema, 1), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(schema.children[0], NANOARROW_TYPE_INT32), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaSetName(schema.children[0], "item"), NANOARROW_OK);
+
+  auto arrow_type = ImportType(&schema);
+  ARROW_EXPECT_OK(arrow_type);
+  EXPECT_TRUE(arrow_type.ValueUnsafe()->Equals(list(int32())));
+
+  EXPECT_EQ(ArrowSchemaInit(&schema, NANOARROW_TYPE_LARGE_LIST), NANOARROW_OK);
+  EXPECT_STREQ(schema.format, "+L");
+  ASSERT_EQ(ArrowSchemaAllocateChildren(&schema, 1), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(schema.children[0], NANOARROW_TYPE_INT32), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaSetName(schema.children[0], "item"), NANOARROW_OK);
+
+  arrow_type = ImportType(&schema);
+  ARROW_EXPECT_OK(arrow_type);
+  EXPECT_TRUE(arrow_type.ValueUnsafe()->Equals(large_list(int32())));
+}
+
+TEST(SchemaTest, SchemaTestInitNestedStruct) {
+  struct ArrowSchema schema;
+
+  EXPECT_EQ(ArrowSchemaInit(&schema, NANOARROW_TYPE_STRUCT), NANOARROW_OK);
+  EXPECT_STREQ(schema.format, "+s");
+  ASSERT_EQ(ArrowSchemaAllocateChildren(&schema, 1), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(schema.children[0], NANOARROW_TYPE_INT32), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaSetName(schema.children[0], "item"), NANOARROW_OK);
+
+  auto arrow_type = ImportType(&schema);
+  ARROW_EXPECT_OK(arrow_type);
+  EXPECT_TRUE(arrow_type.ValueUnsafe()->Equals(struct_({field("item", int32())})));
+}
+
+TEST(SchemaTest, SchemaTestInitNestedMap) {
+  struct ArrowSchema schema;
+
+  EXPECT_EQ(ArrowSchemaInit(&schema, NANOARROW_TYPE_MAP), NANOARROW_OK);
+  EXPECT_STREQ(schema.format, "+m");
+  ASSERT_EQ(ArrowSchemaAllocateChildren(&schema, 1), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(schema.children[0], NANOARROW_TYPE_STRUCT), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaSetName(schema.children[0], "entries"), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaAllocateChildren(schema.children[0], 2), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(schema.children[0]->children[0], NANOARROW_TYPE_INT32),
+            NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaSetName(schema.children[0]->children[0], "key"), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(schema.children[0]->children[1], NANOARROW_TYPE_STRING),
+            NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaSetName(schema.children[0]->children[1], "value"), NANOARROW_OK);
+
+  auto arrow_type = ImportType(&schema);
+  ARROW_EXPECT_OK(arrow_type);
+  EXPECT_TRUE(arrow_type.ValueUnsafe()->Equals(map(int32(), utf8())));
+}
+
 TEST(SchemaTest, SchemaInitFixedSize) {
   struct ArrowSchema schema;
 

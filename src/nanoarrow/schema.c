@@ -73,21 +73,21 @@ const char* ArrowSchemaFormatTemplate(enum ArrowType data_type) {
       return "b";
 
     case NANOARROW_TYPE_UINT8:
-      return "c";
-    case NANOARROW_TYPE_INT8:
       return "C";
+    case NANOARROW_TYPE_INT8:
+      return "c";
     case NANOARROW_TYPE_UINT16:
-      return "s";
-    case NANOARROW_TYPE_INT16:
       return "S";
+    case NANOARROW_TYPE_INT16:
+      return "s";
     case NANOARROW_TYPE_UINT32:
-      return "i";
-    case NANOARROW_TYPE_INT32:
       return "I";
+    case NANOARROW_TYPE_INT32:
+      return "i";
     case NANOARROW_TYPE_UINT64:
-      return "l";
-    case NANOARROW_TYPE_INT64:
       return "L";
+    case NANOARROW_TYPE_INT64:
+      return "l";
 
     case NANOARROW_TYPE_HALF_FLOAT:
       return "e";
@@ -138,10 +138,6 @@ const char* ArrowSchemaFormatTemplate(enum ArrowType data_type) {
       return "+w:1";
     case NANOARROW_TYPE_STRUCT:
       return "+s";
-    case NANOARROW_TYPE_SPARSE_UNION:
-      return "+us:";
-    case NANOARROW_TYPE_DENSE_UNION:
-      return "+ud:";
     case NANOARROW_TYPE_MAP:
       return "+m";
 
