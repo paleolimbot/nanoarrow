@@ -147,12 +147,21 @@ TEST(SchemaTest, SchemaInitFixedSize) {
   EXPECT_EQ(ArrowSchemaInitFixedSize(&schema, NANOARROW_TYPE_FIXED_SIZE_BINARY, 45),
             NANOARROW_OK);
   EXPECT_STREQ(schema.format, "w:45");
-  schema.release(&schema);
+
+  auto arrow_type = ImportType(&schema);
+  ARROW_EXPECT_OK(arrow_type);
+  EXPECT_TRUE(arrow_type.ValueUnsafe()->Equals(fixed_size_binary(45)));
 
   EXPECT_EQ(ArrowSchemaInitFixedSize(&schema, NANOARROW_TYPE_FIXED_SIZE_LIST, 12),
             NANOARROW_OK);
   EXPECT_STREQ(schema.format, "+w:12");
-  schema.release(&schema);
+  ASSERT_EQ(ArrowSchemaAllocateChildren(&schema, 1), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(schema.children[0], NANOARROW_TYPE_INT32), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaSetName(schema.children[0], "item"), NANOARROW_OK);
+
+  arrow_type = ImportType(&schema);
+  ARROW_EXPECT_OK(arrow_type);
+  EXPECT_TRUE(arrow_type.ValueUnsafe()->Equals(fixed_size_list(int32(), 12)));
 }
 
 TEST(SchemaTest, SchemaInitDecimal) {
@@ -166,12 +175,17 @@ TEST(SchemaTest, SchemaInitDecimal) {
   EXPECT_EQ(ArrowSchemaInitDecimal(&schema, NANOARROW_TYPE_DECIMAL128, 1, 2),
             NANOARROW_OK);
   EXPECT_STREQ(schema.format, "d:1,2");
-  schema.release(&schema);
 
-  EXPECT_EQ(ArrowSchemaInitDecimal(&schema, NANOARROW_TYPE_DECIMAL256, 1, 2),
+  auto arrow_type = ImportType(&schema);
+  ARROW_EXPECT_OK(arrow_type);
+  EXPECT_TRUE(arrow_type.ValueUnsafe()->Equals(decimal128(1, 2)));
+
+  EXPECT_EQ(ArrowSchemaInitDecimal(&schema, NANOARROW_TYPE_DECIMAL256, 3, 4),
             NANOARROW_OK);
-  EXPECT_STREQ(schema.format, "d:1,2,256");
-  schema.release(&schema);
+  EXPECT_STREQ(schema.format, "d:3,4,256");
+  arrow_type = ImportType(&schema);
+  ARROW_EXPECT_OK(arrow_type);
+  EXPECT_TRUE(arrow_type.ValueUnsafe()->Equals(decimal256(3, 4)));
 }
 
 TEST(SchemaTest, SchemaInitDateTime) {
@@ -194,31 +208,47 @@ TEST(SchemaTest, SchemaInitDateTime) {
                                     NANOARROW_TIME_UNIT_SECOND, NULL),
             NANOARROW_OK);
   EXPECT_STREQ(schema.format, "tts");
-  schema.release(&schema);
+
+  auto arrow_type = ImportType(&schema);
+  ARROW_EXPECT_OK(arrow_type);
+  EXPECT_TRUE(arrow_type.ValueUnsafe()->Equals(time32(TimeUnit::SECOND)));
 
   EXPECT_EQ(ArrowSchemaInitDateTime(&schema, NANOARROW_TYPE_TIME64,
                                     NANOARROW_TIME_UNIT_NANO, NULL),
             NANOARROW_OK);
   EXPECT_STREQ(schema.format, "ttn");
-  schema.release(&schema);
+
+  arrow_type = ImportType(&schema);
+  ARROW_EXPECT_OK(arrow_type);
+  EXPECT_TRUE(arrow_type.ValueUnsafe()->Equals(time64(TimeUnit::NANO)));
 
   EXPECT_EQ(ArrowSchemaInitDateTime(&schema, NANOARROW_TYPE_DURATION,
                                     NANOARROW_TIME_UNIT_SECOND, NULL),
             NANOARROW_OK);
   EXPECT_STREQ(schema.format, "tDs");
-  schema.release(&schema);
+
+  arrow_type = ImportType(&schema);
+  ARROW_EXPECT_OK(arrow_type);
+  EXPECT_TRUE(arrow_type.ValueUnsafe()->Equals(duration(TimeUnit::SECOND)));
 
   EXPECT_EQ(ArrowSchemaInitDateTime(&schema, NANOARROW_TYPE_TIMESTAMP,
                                     NANOARROW_TIME_UNIT_SECOND, NULL),
             NANOARROW_OK);
   EXPECT_STREQ(schema.format, "tss:");
-  schema.release(&schema);
+
+  arrow_type = ImportType(&schema);
+  ARROW_EXPECT_OK(arrow_type);
+  EXPECT_TRUE(arrow_type.ValueUnsafe()->Equals(timestamp(TimeUnit::SECOND)));
 
   EXPECT_EQ(ArrowSchemaInitDateTime(&schema, NANOARROW_TYPE_TIMESTAMP,
                                     NANOARROW_TIME_UNIT_SECOND, "America/Halifax"),
             NANOARROW_OK);
   EXPECT_STREQ(schema.format, "tss:America/Halifax");
-  schema.release(&schema);
+
+  arrow_type = ImportType(&schema);
+  ARROW_EXPECT_OK(arrow_type);
+  EXPECT_TRUE(
+      arrow_type.ValueUnsafe()->Equals(timestamp(TimeUnit::SECOND, "America/Halifax")));
 }
 
 TEST(SchemaTest, SchemaSetFormat) {
