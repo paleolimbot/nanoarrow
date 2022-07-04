@@ -95,10 +95,6 @@ const char* ArrowSchemaFormatTemplate(enum ArrowType data_type) {
       return "f";
     case NANOARROW_TYPE_DOUBLE:
       return "g";
-    case NANOARROW_TYPE_DECIMAL128:
-      return "d:1,1";
-    case NANOARROW_TYPE_DECIMAL256:
-      return "d:1,1,256";
 
     case NANOARROW_TYPE_STRING:
       return "u";
@@ -108,21 +104,11 @@ const char* ArrowSchemaFormatTemplate(enum ArrowType data_type) {
       return "z";
     case NANOARROW_TYPE_LARGE_BINARY:
       return "Z";
-    case NANOARROW_TYPE_FIXED_SIZE_BINARY:
-      return "w:1";
 
     case NANOARROW_TYPE_DATE32:
       return "tdD";
     case NANOARROW_TYPE_DATE64:
       return "tdm";
-    case NANOARROW_TYPE_TIME32:
-      return "tts";
-    case NANOARROW_TYPE_TIME64:
-      return "ttu";
-    case NANOARROW_TYPE_TIMESTAMP:
-      return "tss";
-    case NANOARROW_TYPE_DURATION:
-      return "tDs";
     case NANOARROW_TYPE_INTERVAL_MONTHS:
       return "tiM";
     case NANOARROW_TYPE_INTERVAL_DAY_TIME:
@@ -134,8 +120,6 @@ const char* ArrowSchemaFormatTemplate(enum ArrowType data_type) {
       return "+l";
     case NANOARROW_TYPE_LARGE_LIST:
       return "+L";
-    case NANOARROW_TYPE_FIXED_SIZE_LIST:
-      return "+w:1";
     case NANOARROW_TYPE_STRUCT:
       return "+s";
     case NANOARROW_TYPE_MAP:
@@ -216,7 +200,7 @@ ArrowErrorCode ArrowSchemaInitFixedSize(struct ArrowSchema* schema,
 ArrowErrorCode ArrowSchemaInitDecimal(struct ArrowSchema* schema,
                                       enum ArrowType data_type, int32_t decimal_precision,
                                       int32_t decimal_scale) {
-  int result = ArrowSchemaInit(schema, data_type);
+  int result = ArrowSchemaInit(schema, NANOARROW_TYPE_INVALID);
   if (result != NANOARROW_OK) {
     return result;
   }

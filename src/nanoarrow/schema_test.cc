@@ -76,6 +76,12 @@ TEST(SchemaTest, SchemaInitSimple) {
   ExpectSchemaInitOk(NANOARROW_TYPE_INTERVAL_MONTH_DAY_NANO, month_day_nano_interval());
 }
 
+TEST(SchemaTest, SchemaInitSimpleError) {
+  struct ArrowSchema schema;
+  EXPECT_EQ(ArrowSchemaInit(&schema, NANOARROW_TYPE_DECIMAL128), EINVAL);
+  EXPECT_EQ(schema.release, nullptr);
+}
+
 TEST(SchemaTest, SchemaTestInitNestedList) {
   struct ArrowSchema schema;
 
