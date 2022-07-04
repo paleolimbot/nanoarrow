@@ -24,7 +24,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: build-deps
-          key: ${{ runner.os }}-2
+          key: ${{ runner.os }}-3
 
       - name: Init build dir
         if: steps.cache-deps-build.outputs.cache-hit != 'true'
