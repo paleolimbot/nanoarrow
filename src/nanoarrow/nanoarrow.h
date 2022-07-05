@@ -492,6 +492,12 @@ ArrowErrorCode ArrowBufferSetAllocator(struct ArrowBuffer* buffer,
 /// to NULL, and sets the buffer's size and capacity to 0.
 void ArrowBufferReset(struct ArrowBuffer* buffer);
 
+/// \brief Move an ArrowBuffer
+///
+/// Transfers the buffer data and lifecycle management to another
+/// address and resets buffer.
+void ArrowBufferMove(struct ArrowBuffer* buffer, struct ArrowBuffer* buffer_out);
+
 /// \brief Grow or shrink a buffer to a given capacity
 ArrowErrorCode ArrowBufferResize(struct ArrowBuffer* buffer, int64_t new_capacity_bytes,
                                  char shrink_to_fit);

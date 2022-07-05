@@ -59,6 +59,12 @@ void ArrowBufferReset(struct ArrowBuffer* buffer) {
   buffer->size_bytes = 0;
 }
 
+void ArrowBufferMove(struct ArrowBuffer* buffer, struct ArrowBuffer* buffer_out) {
+  memcpy(buffer_out, buffer, sizeof(struct ArrowBuffer));
+  buffer->data = NULL;
+  ArrowBufferReset(buffer);
+}
+
 ArrowErrorCode ArrowBufferResize(struct ArrowBuffer* buffer, int64_t new_capacity_bytes,
                                  char shrink_to_fit) {
   if (buffer->capacity_bytes >= new_capacity_bytes && !shrink_to_fit) {

@@ -98,18 +98,29 @@ TEST(BufferTest, BufferTestBasic) {
   EXPECT_EQ(buffer.size_bytes, 4);
   EXPECT_EQ(strncmp(reinterpret_cast<char*>(buffer.data), "1234", 4), 0);
 
-  // Free the buffer
+  // Reset the buffer
   ArrowBufferReset(&buffer);
   EXPECT_EQ(buffer.data, nullptr);
   EXPECT_EQ(buffer.capacity_bytes, 0);
   EXPECT_EQ(buffer.size_bytes, 0);
+}
 
-  // Transfer allocator with empty buffer
-  EXPECT_EQ(ArrowBufferSetAllocator(&buffer, ArrowBufferAllocatorDefault()),
-            NANOARROW_OK);
-  EXPECT_EQ(buffer.data, nullptr);
-  EXPECT_EQ(buffer.capacity_bytes, 0);
+TEST(BufferTest, BufferTestMove) {
+  struct ArrowBuffer buffer;
+
+  ArrowBufferInit(&buffer);
+  ASSERT_EQ(ArrowBufferSetAllocator(&buffer, &test_allocator), NANOARROW_OK);
+  ASSERT_EQ(ArrowBufferAppend(&buffer, "1234567", 7), NANOARROW_OK);
+  EXPECT_EQ(buffer.size_bytes, 7);
+  EXPECT_EQ(buffer.capacity_bytes, 7);
+
+  struct ArrowBuffer buffer_out;
+  ArrowBufferMove(&buffer, &buffer_out);
   EXPECT_EQ(buffer.size_bytes, 0);
+  EXPECT_EQ(buffer.capacity_bytes, 0);
+  EXPECT_EQ(buffer.data, nullptr);
+  EXPECT_EQ(buffer_out.size_bytes, 7);
+  EXPECT_EQ(buffer_out.capacity_bytes, 7);
 }
 
 TEST(BufferTest, BufferTestResize0) {
