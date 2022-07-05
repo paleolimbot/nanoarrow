@@ -256,6 +256,33 @@ TEST(SchemaTest, SchemaInitDateTime) {
   EXPECT_TRUE(arrow_type.ValueUnsafe()->Equals(timestamp(TimeUnit::SECOND)));
 
   EXPECT_EQ(ArrowSchemaInitDateTime(&schema, NANOARROW_TYPE_TIMESTAMP,
+                                    NANOARROW_TIME_UNIT_MILLI, NULL),
+            NANOARROW_OK);
+  EXPECT_STREQ(schema.format, "tsm:");
+
+  arrow_type = ImportType(&schema);
+  ARROW_EXPECT_OK(arrow_type);
+  EXPECT_TRUE(arrow_type.ValueUnsafe()->Equals(timestamp(TimeUnit::MILLI)));
+
+  EXPECT_EQ(ArrowSchemaInitDateTime(&schema, NANOARROW_TYPE_TIMESTAMP,
+                                    NANOARROW_TIME_UNIT_MICRO, NULL),
+            NANOARROW_OK);
+  EXPECT_STREQ(schema.format, "tsu:");
+
+  arrow_type = ImportType(&schema);
+  ARROW_EXPECT_OK(arrow_type);
+  EXPECT_TRUE(arrow_type.ValueUnsafe()->Equals(timestamp(TimeUnit::MICRO)));
+
+  EXPECT_EQ(ArrowSchemaInitDateTime(&schema, NANOARROW_TYPE_TIMESTAMP,
+                                    NANOARROW_TIME_UNIT_NANO, NULL),
+            NANOARROW_OK);
+  EXPECT_STREQ(schema.format, "tsn:");
+
+  arrow_type = ImportType(&schema);
+  ARROW_EXPECT_OK(arrow_type);
+  EXPECT_TRUE(arrow_type.ValueUnsafe()->Equals(timestamp(TimeUnit::NANO)));
+
+  EXPECT_EQ(ArrowSchemaInitDateTime(&schema, NANOARROW_TYPE_TIMESTAMP,
                                     NANOARROW_TIME_UNIT_SECOND, "America/Halifax"),
             NANOARROW_OK);
   EXPECT_STREQ(schema.format, "tss:America/Halifax");

@@ -306,9 +306,10 @@ ArrowErrorCode ArrowSchemaInitDateTime(struct ArrowSchema* schema,
   result = ArrowSchemaSetFormat(schema, buffer);
   if (result != NANOARROW_OK) {
     schema->release(schema);
+    return result;
   }
 
-  return result;
+  return NANOARROW_OK;
 }
 
 ArrowErrorCode ArrowSchemaSetFormat(struct ArrowSchema* schema, const char* format) {
