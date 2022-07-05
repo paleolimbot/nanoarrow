@@ -267,7 +267,7 @@ ArrowErrorCode ArrowSchemaInitDateTime(struct ArrowSchema* schema,
     return EINVAL;
   }
 
-  char buffer[64];
+  char buffer[128];
   int n_chars;
   switch (data_type) {
     case NANOARROW_TYPE_TIME32:
@@ -294,6 +294,11 @@ ArrowErrorCode ArrowSchemaInitDateTime(struct ArrowSchema* schema,
     default:
       schema->release(schema);
       return EINVAL;
+  }
+
+  if (n_chars >= sizeof(buffer)) {
+    schema->release(schema);
+    return ERANGE;
   }
 
   buffer[n_chars] = '\0';

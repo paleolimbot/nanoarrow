@@ -201,13 +201,22 @@ TEST(SchemaTest, SchemaInitDateTime) {
                                     NANOARROW_TIME_UNIT_SECOND, nullptr),
             EINVAL);
   EXPECT_EQ(schema.release, nullptr);
+
   EXPECT_EQ(ArrowSchemaInitDateTime(&schema, NANOARROW_TYPE_TIME32,
                                     NANOARROW_TIME_UNIT_SECOND, "non-null timezone"),
             EINVAL);
   EXPECT_EQ(schema.release, nullptr);
+
   EXPECT_EQ(ArrowSchemaInitDateTime(&schema, NANOARROW_TYPE_DURATION,
                                     NANOARROW_TIME_UNIT_SECOND, "non-null timezone"),
             EINVAL);
+  EXPECT_EQ(schema.release, nullptr);
+
+  EXPECT_EQ(ArrowSchemaInitDateTime(
+                &schema, NANOARROW_TYPE_TIMESTAMP, NANOARROW_TIME_UNIT_SECOND,
+                "a really really really really really really really really really really "
+                "long timezone that causes a buffer overflow on snprintf"),
+            ERANGE);
   EXPECT_EQ(schema.release, nullptr);
 
   EXPECT_EQ(ArrowSchemaInitDateTime(&schema, NANOARROW_TYPE_TIME32,
