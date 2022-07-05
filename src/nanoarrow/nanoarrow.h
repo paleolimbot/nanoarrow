@@ -483,6 +483,82 @@ ArrowErrorCode ArrowSchemaViewInit(struct ArrowSchemaView* schema_view,
 
 /// }@
 
+/// \defgroup nanoarrow-buffer-builder Growable buffer builders
+
+/// \brief An owning mutable view of a buffer
+struct ArrowBuffer {
+  /// \brief A pointer to the start of the buffer
+  ///
+  /// If capacity_bytes is 0, this value may be NULL.
+  uint8_t* data;
+
+  /// \brief The size of the buffer in bytes
+  int64_t size_bytes;
+
+  /// \brief The capacity of the buffer in bytes
+  int64_t capacity_bytes;
+
+  /// \brief The allocator that will be used to reallocate and/or free the buffer
+  struct ArrowBufferAllocator* allocator;
+};
+
+/// \brief Initialize an ArrowBuffer
+///
+/// Initialize a buffer with a NULL, zero-size buffer using the default
+/// buffer allocator.
+void ArrowBufferInit(struct ArrowBuffer* buffer);
+
+/// \brief Set a newly-initialized buffer's allocator
+///
+/// Returns EINVAL if the buffer has already been allocated.
+ArrowErrorCode ArrowBufferSetAllocator(struct ArrowBuffer* buffer,
+                                       struct ArrowBufferAllocator* allocator);
+
+/// \brief Reset an ArrowBuffer
+///
+/// Releases the buffer using the allocator's free method if
+/// the buffer's data member is non-null, sets the data member
+/// to NULL, and sets the buffer's size and capacity to 0.
+void ArrowBufferReset(struct ArrowBuffer* buffer);
+
+/// \brief Move an ArrowBuffer
+///
+/// Transfers the buffer data and lifecycle management to another
+/// address and resets buffer.
+void ArrowBufferMove(struct ArrowBuffer* buffer, struct ArrowBuffer* buffer_out);
+
+/// \brief Grow or shrink a buffer to a given capacity
+///
+/// When shrinking the capacity of the buffer, the buffer is only reallocated
+/// if shrink_to_fit is non-zero. Calling ArrowBufferResize() does not
+/// adjust the buffer's size member except to ensure that the invariant
+/// capacity >= size remains true.
+ArrowErrorCode ArrowBufferResize(struct ArrowBuffer* buffer, int64_t new_capacity_bytes,
+                                 char shrink_to_fit);
+
+/// \brief Ensure a buffer has at least a given additional capacity
+///
+/// Ensures that the buffer has space to append at least
+/// additional_size_bytes, overallocating when required.
+ArrowErrorCode ArrowBufferReserve(struct ArrowBuffer* buffer,
+                                  int64_t additional_size_bytes);
+
+/// \brief Write data to buffer and increment the buffer size
+///
+/// This function does not check that buffer has the required capacity
+void ArrowBufferAppendUnsafe(struct ArrowBuffer* buffer, const void* data,
+                             int64_t size_bytes);
+
+/// \brief Write data to buffer and increment the buffer size
+///
+/// This function writes and ensures that the buffer has the required capacity,
+/// possibly by reallocating the buffer. Like ArrowBufferReserve, this will
+/// overallocate when reallocation is required.
+ArrowErrorCode ArrowBufferAppend(struct ArrowBuffer* buffer, const void* data,
+                                 int64_t size_bytes);
+
+/// }@
+
 #ifdef __cplusplus
 }
 #endif
