@@ -86,11 +86,17 @@ TEST(BufferTest, BufferTestBasic) {
   EXPECT_EQ(buffer.size_bytes, 12);
   EXPECT_STREQ(reinterpret_cast<char*>(buffer.data), "12345678901");
 
-  // Shrink capacity
-  EXPECT_EQ(ArrowBufferResize(&buffer, 5, true), NANOARROW_OK);
-  EXPECT_EQ(buffer.capacity_bytes, 5);
+  // Resize smaller without shrinking
+  EXPECT_EQ(ArrowBufferResize(&buffer, 5, false), NANOARROW_OK);
+  EXPECT_EQ(buffer.capacity_bytes, 20);
   EXPECT_EQ(buffer.size_bytes, 5);
   EXPECT_EQ(strncmp(reinterpret_cast<char*>(buffer.data), "12345", 5), 0);
+
+  // Resize smaller with shrinking
+  EXPECT_EQ(ArrowBufferResize(&buffer, 4, true), NANOARROW_OK);
+  EXPECT_EQ(buffer.capacity_bytes, 4);
+  EXPECT_EQ(buffer.size_bytes, 4);
+  EXPECT_EQ(strncmp(reinterpret_cast<char*>(buffer.data), "1234", 4), 0);
 
   // Free the buffer
   ArrowBufferRelease(&buffer);

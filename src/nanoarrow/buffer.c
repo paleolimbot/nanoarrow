@@ -61,6 +61,7 @@ void ArrowBufferRelease(struct ArrowBuffer* buffer) {
 ArrowErrorCode ArrowBufferResize(struct ArrowBuffer* buffer, int64_t new_capacity_bytes,
                                  char shrink_to_fit) {
   if (buffer->capacity_bytes >= new_capacity_bytes && !shrink_to_fit) {
+    buffer->size_bytes = new_capacity_bytes;
     return NANOARROW_OK;
   }
 
