@@ -37,7 +37,7 @@ TEST(SchemaViewTest, SchemaViewInitErrors) {
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
   EXPECT_STREQ(ArrowErrorMessage(&error), "Expected non-released schema");
 
-  ASSERT_EQ(ArrowSchemaInit(&schema), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(&schema, NANOARROW_TYPE_UNINITIALIZED), NANOARROW_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
   EXPECT_STREQ(
       ArrowErrorMessage(&error),
@@ -109,9 +109,8 @@ TEST(SchemaViewTest, SchemaViewInitSimpleErrors) {
   struct ArrowSchemaView schema_view;
   struct ArrowError error;
 
-  ASSERT_EQ(ArrowSchemaInit(&schema), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(&schema, NANOARROW_TYPE_NA), NANOARROW_OK);
   ASSERT_EQ(ArrowSchemaAllocateChildren(&schema, 2), NANOARROW_OK);
-  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "n"), NANOARROW_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
   EXPECT_STREQ(ArrowErrorMessage(&error),
                "Expected schema with 0 children but found 2 children");
@@ -153,7 +152,7 @@ TEST(SchemaViewTest, SchemaViewInitDecimalErrors) {
   struct ArrowSchema schema;
   struct ArrowSchemaView schema_view;
   struct ArrowError error;
-  ASSERT_EQ(ArrowSchemaInit(&schema), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(&schema, NANOARROW_TYPE_NA), NANOARROW_OK);
 
   ASSERT_EQ(ArrowSchemaSetFormat(&schema, "d"), NANOARROW_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
@@ -254,7 +253,7 @@ TEST(SchemaViewTest, SchemaViewInitBinaryAndStringErrors) {
   struct ArrowSchema schema;
   struct ArrowSchemaView schema_view;
   struct ArrowError error;
-  ASSERT_EQ(ArrowSchemaInit(&schema), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(&schema, NANOARROW_TYPE_NA), NANOARROW_OK);
 
   ASSERT_EQ(ArrowSchemaSetFormat(&schema, "w"), NANOARROW_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
@@ -475,7 +474,7 @@ TEST(SchemaViewTest, SchemaViewInitTimeErrors) {
   struct ArrowSchema schema;
   struct ArrowSchemaView schema_view;
   struct ArrowError error;
-  ASSERT_EQ(ArrowSchemaInit(&schema), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(&schema, NANOARROW_TYPE_NA), NANOARROW_OK);
 
   ASSERT_EQ(ArrowSchemaSetFormat(&schema, "t*"), NANOARROW_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
@@ -558,7 +557,7 @@ TEST(SchemaViewTest, SchemaViewNestedListErrors) {
   struct ArrowSchema schema;
   struct ArrowSchemaView schema_view;
   struct ArrowError error;
-  ASSERT_EQ(ArrowSchemaInit(&schema), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(&schema, NANOARROW_TYPE_NA), NANOARROW_OK);
 
   ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+w"), NANOARROW_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
@@ -601,16 +600,16 @@ TEST(SchemaViewTest, SchemaViewInitNestedStructErrors) {
   struct ArrowSchemaView schema_view;
   struct ArrowError error;
 
-  ASSERT_EQ(ArrowSchemaInit(&schema), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(&schema, NANOARROW_TYPE_STRUCT), NANOARROW_OK);
   ASSERT_EQ(ArrowSchemaAllocateChildren(&schema, 1), NANOARROW_OK);
-  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+s"), NANOARROW_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
   EXPECT_STREQ(
       ArrowErrorMessage(&error),
       "Expected valid schema at schema->children[0] but found a released schema");
 
   // Make sure validation passes even with an inspectable but invalid child
-  ASSERT_EQ(ArrowSchemaInit(schema.children[0]), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(schema.children[0], NANOARROW_TYPE_UNINITIALIZED),
+            NANOARROW_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, schema.children[0], &error), EINVAL);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), NANOARROW_OK);
 
@@ -642,34 +641,33 @@ TEST(SchemaViewTest, SchemaViewInitNestedMapErrors) {
   struct ArrowSchemaView schema_view;
   struct ArrowError error;
 
-  ASSERT_EQ(ArrowSchemaInit(&schema), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(&schema, NANOARROW_TYPE_MAP), NANOARROW_OK);
   ASSERT_EQ(ArrowSchemaAllocateChildren(&schema, 2), NANOARROW_OK);
-  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+m"), NANOARROW_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
   EXPECT_STREQ(ArrowErrorMessage(&error),
                "Expected schema with 1 children but found 2 children");
   schema.release(&schema);
 
-  ASSERT_EQ(ArrowSchemaInit(&schema), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(&schema, NANOARROW_TYPE_MAP), NANOARROW_OK);
   ASSERT_EQ(ArrowSchemaAllocateChildren(&schema, 1), NANOARROW_OK);
-  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+m"), NANOARROW_OK);
-  ASSERT_EQ(ArrowSchemaInit(schema.children[0]), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(schema.children[0], NANOARROW_TYPE_UNINITIALIZED),
+            NANOARROW_OK);
   ASSERT_EQ(ArrowSchemaSetFormat(schema.children[0], "n"), NANOARROW_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
   EXPECT_STREQ(ArrowErrorMessage(&error),
                "Expected child of map type to have 2 children but found 0");
   schema.release(&schema);
 
-  ASSERT_EQ(ArrowSchemaInit(&schema), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(&schema, NANOARROW_TYPE_MAP), NANOARROW_OK);
   ASSERT_EQ(ArrowSchemaAllocateChildren(&schema, 1), NANOARROW_OK);
-  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+m"), NANOARROW_OK);
-  ASSERT_EQ(ArrowSchemaInit(schema.children[0]), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(schema.children[0], NANOARROW_TYPE_UNINITIALIZED),
+            NANOARROW_OK);
   ASSERT_EQ(ArrowSchemaAllocateChildren(schema.children[0], 2), NANOARROW_OK);
   ASSERT_EQ(ArrowSchemaSetFormat(schema.children[0], "+us:0,1"), NANOARROW_OK);
-  ASSERT_EQ(ArrowSchemaInit(schema.children[0]->children[0]), NANOARROW_OK);
-  ASSERT_EQ(ArrowSchemaSetFormat(schema.children[0]->children[0], "n"), NANOARROW_OK);
-  ASSERT_EQ(ArrowSchemaInit(schema.children[0]->children[1]), NANOARROW_OK);
-  ASSERT_EQ(ArrowSchemaSetFormat(schema.children[0]->children[1], "n"), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(schema.children[0]->children[0], NANOARROW_TYPE_NA),
+            NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(schema.children[0]->children[1], NANOARROW_TYPE_NA),
+            NANOARROW_OK);
 
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
   EXPECT_STREQ(ArrowErrorMessage(&error),
@@ -710,7 +708,7 @@ TEST(SchemaViewTest, SchemaViewInitNestedUnionErrors) {
   struct ArrowSchema schema;
   struct ArrowSchemaView schema_view;
   struct ArrowError error;
-  ASSERT_EQ(ArrowSchemaInit(&schema), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(&schema, NANOARROW_TYPE_NA), NANOARROW_OK);
 
   ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+u*"), NANOARROW_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
@@ -745,18 +743,15 @@ TEST(SchemaViewTest, SchemaViewInitDictionaryErrors) {
   struct ArrowSchemaView schema_view;
   struct ArrowError error;
 
-  ASSERT_EQ(ArrowSchemaInit(&schema), NANOARROW_OK);
-  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "i"), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(&schema, NANOARROW_TYPE_INT32), NANOARROW_OK);
   ASSERT_EQ(ArrowSchemaAllocateDictionary(&schema), NANOARROW_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
   EXPECT_STREQ(ArrowErrorMessage(&error), "Expected non-released schema");
   schema.release(&schema);
 
-  ASSERT_EQ(ArrowSchemaInit(&schema), NANOARROW_OK);
-  ASSERT_EQ(ArrowSchemaSetFormat(&schema, "+s"), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(&schema, NANOARROW_TYPE_STRUCT), NANOARROW_OK);
   ASSERT_EQ(ArrowSchemaAllocateDictionary(&schema), NANOARROW_OK);
-  ASSERT_EQ(ArrowSchemaInit(schema.dictionary), NANOARROW_OK);
-  ASSERT_EQ(ArrowSchemaSetFormat(schema.dictionary, "u"), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(schema.dictionary, NANOARROW_TYPE_STRING), NANOARROW_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
   EXPECT_STREQ(
       ArrowErrorMessage(&error),
