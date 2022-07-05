@@ -27,7 +27,7 @@ using namespace arrow;
 
 TEST(SchemaTest, SchemaInit) {
   struct ArrowSchema schema;
-  ASSERT_EQ(ArrowSchemaInit(&schema, NANOARROW_TYPE_INVALID), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(&schema, NANOARROW_TYPE_UNINITIALIZED), NANOARROW_OK);
   ASSERT_EQ(ArrowSchemaAllocateChildren(&schema, 2), NANOARROW_OK);
 
   ASSERT_NE(schema.release, nullptr);
@@ -259,7 +259,7 @@ TEST(SchemaTest, SchemaInitDateTime) {
 
 TEST(SchemaTest, SchemaSetFormat) {
   struct ArrowSchema schema;
-  ArrowSchemaInit(&schema, NANOARROW_TYPE_INVALID);
+  ArrowSchemaInit(&schema, NANOARROW_TYPE_UNINITIALIZED);
 
   EXPECT_EQ(ArrowSchemaSetFormat(&schema, "i"), NANOARROW_OK);
   EXPECT_STREQ(schema.format, "i");
@@ -272,7 +272,7 @@ TEST(SchemaTest, SchemaSetFormat) {
 
 TEST(SchemaTest, SchemaSetName) {
   struct ArrowSchema schema;
-  ArrowSchemaInit(&schema, NANOARROW_TYPE_INVALID);
+  ArrowSchemaInit(&schema, NANOARROW_TYPE_UNINITIALIZED);
 
   EXPECT_EQ(ArrowSchemaSetName(&schema, "a_name"), NANOARROW_OK);
   EXPECT_STREQ(schema.name, "a_name");
@@ -285,7 +285,7 @@ TEST(SchemaTest, SchemaSetName) {
 
 TEST(SchemaTest, SchemaSetMetadata) {
   struct ArrowSchema schema;
-  ArrowSchemaInit(&schema, NANOARROW_TYPE_INVALID);
+  ArrowSchemaInit(&schema, NANOARROW_TYPE_UNINITIALIZED);
 
   // (test will only work on little endian)
   char simple_metadata[] = {'\1', '\0', '\0', '\0', '\3', '\0', '\0', '\0', 'k', 'e',
@@ -302,7 +302,7 @@ TEST(SchemaTest, SchemaSetMetadata) {
 
 TEST(SchemaTest, SchemaAllocateDictionary) {
   struct ArrowSchema schema;
-  ArrowSchemaInit(&schema, NANOARROW_TYPE_INVALID);
+  ArrowSchemaInit(&schema, NANOARROW_TYPE_UNINITIALIZED);
 
   EXPECT_EQ(ArrowSchemaAllocateDictionary(&schema), NANOARROW_OK);
   EXPECT_EQ(schema.dictionary->release, nullptr);

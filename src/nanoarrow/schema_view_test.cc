@@ -37,7 +37,7 @@ TEST(SchemaViewTest, SchemaViewInitErrors) {
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
   EXPECT_STREQ(ArrowErrorMessage(&error), "Expected non-released schema");
 
-  ASSERT_EQ(ArrowSchemaInit(&schema, NANOARROW_TYPE_INVALID), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(&schema, NANOARROW_TYPE_UNINITIALIZED), NANOARROW_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
   EXPECT_STREQ(
       ArrowErrorMessage(&error),
@@ -608,7 +608,8 @@ TEST(SchemaViewTest, SchemaViewInitNestedStructErrors) {
       "Expected valid schema at schema->children[0] but found a released schema");
 
   // Make sure validation passes even with an inspectable but invalid child
-  ASSERT_EQ(ArrowSchemaInit(schema.children[0], NANOARROW_TYPE_INVALID), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(schema.children[0], NANOARROW_TYPE_UNINITIALIZED),
+            NANOARROW_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, schema.children[0], &error), EINVAL);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), NANOARROW_OK);
 
@@ -649,7 +650,8 @@ TEST(SchemaViewTest, SchemaViewInitNestedMapErrors) {
 
   ASSERT_EQ(ArrowSchemaInit(&schema, NANOARROW_TYPE_MAP), NANOARROW_OK);
   ASSERT_EQ(ArrowSchemaAllocateChildren(&schema, 1), NANOARROW_OK);
-  ASSERT_EQ(ArrowSchemaInit(schema.children[0], NANOARROW_TYPE_INVALID), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(schema.children[0], NANOARROW_TYPE_UNINITIALIZED),
+            NANOARROW_OK);
   ASSERT_EQ(ArrowSchemaSetFormat(schema.children[0], "n"), NANOARROW_OK);
   EXPECT_EQ(ArrowSchemaViewInit(&schema_view, &schema, &error), EINVAL);
   EXPECT_STREQ(ArrowErrorMessage(&error),
@@ -658,7 +660,8 @@ TEST(SchemaViewTest, SchemaViewInitNestedMapErrors) {
 
   ASSERT_EQ(ArrowSchemaInit(&schema, NANOARROW_TYPE_MAP), NANOARROW_OK);
   ASSERT_EQ(ArrowSchemaAllocateChildren(&schema, 1), NANOARROW_OK);
-  ASSERT_EQ(ArrowSchemaInit(schema.children[0], NANOARROW_TYPE_INVALID), NANOARROW_OK);
+  ASSERT_EQ(ArrowSchemaInit(schema.children[0], NANOARROW_TYPE_UNINITIALIZED),
+            NANOARROW_OK);
   ASSERT_EQ(ArrowSchemaAllocateChildren(schema.children[0], 2), NANOARROW_OK);
   ASSERT_EQ(ArrowSchemaSetFormat(schema.children[0], "+us:0,1"), NANOARROW_OK);
   ASSERT_EQ(ArrowSchemaInit(schema.children[0]->children[0], NANOARROW_TYPE_NA),

@@ -65,7 +65,7 @@ void ArrowSchemaRelease(struct ArrowSchema* schema) {
 
 const char* ArrowSchemaFormatTemplate(enum ArrowType data_type) {
   switch (data_type) {
-    case NANOARROW_TYPE_INVALID:
+    case NANOARROW_TYPE_UNINITIALIZED:
       return NULL;
     case NANOARROW_TYPE_NA:
       return "n";
@@ -148,7 +148,7 @@ ArrowErrorCode ArrowSchemaInit(struct ArrowSchema* schema, enum ArrowType data_t
   const char* template_format = ArrowSchemaFormatTemplate(data_type);
 
   // If data_type isn't recognized and not explicitly unset
-  if (template_format == NULL && data_type != NANOARROW_TYPE_INVALID) {
+  if (template_format == NULL && data_type != NANOARROW_TYPE_UNINITIALIZED) {
     schema->release(schema);
     return EINVAL;
   }
@@ -164,7 +164,7 @@ ArrowErrorCode ArrowSchemaInit(struct ArrowSchema* schema, enum ArrowType data_t
 
 ArrowErrorCode ArrowSchemaInitFixedSize(struct ArrowSchema* schema,
                                         enum ArrowType data_type, int32_t fixed_size) {
-  int result = ArrowSchemaInit(schema, NANOARROW_TYPE_INVALID);
+  int result = ArrowSchemaInit(schema, NANOARROW_TYPE_UNINITIALIZED);
   if (result != NANOARROW_OK) {
     return result;
   }
@@ -200,7 +200,7 @@ ArrowErrorCode ArrowSchemaInitFixedSize(struct ArrowSchema* schema,
 ArrowErrorCode ArrowSchemaInitDecimal(struct ArrowSchema* schema,
                                       enum ArrowType data_type, int32_t decimal_precision,
                                       int32_t decimal_scale) {
-  int result = ArrowSchemaInit(schema, NANOARROW_TYPE_INVALID);
+  int result = ArrowSchemaInit(schema, NANOARROW_TYPE_UNINITIALIZED);
   if (result != NANOARROW_OK) {
     return result;
   }
@@ -256,7 +256,7 @@ ArrowErrorCode ArrowSchemaInitDateTime(struct ArrowSchema* schema,
                                        enum ArrowType data_type,
                                        enum ArrowTimeUnit time_unit,
                                        const char* timezone) {
-  int result = ArrowSchemaInit(schema, NANOARROW_TYPE_INVALID);
+  int result = ArrowSchemaInit(schema, NANOARROW_TYPE_UNINITIALIZED);
   if (result != NANOARROW_OK) {
     return result;
   }

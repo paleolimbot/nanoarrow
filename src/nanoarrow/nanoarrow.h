@@ -217,7 +217,7 @@ struct ArrowStringView {
 /// enumerator; however, the numeric values are specifically not equal
 /// (i.e., do not rely on numeric comparison).
 enum ArrowType {
-  NANOARROW_TYPE_INVALID = 0,
+  NANOARROW_TYPE_UNINITIALIZED = 0,
   NANOARROW_TYPE_NA = 1,
   NANOARROW_TYPE_BOOL,
   NANOARROW_TYPE_UINT8,
