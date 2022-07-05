@@ -485,11 +485,12 @@ void ArrowBufferInit(struct ArrowBuffer* buffer);
 ArrowErrorCode ArrowBufferSetAllocator(struct ArrowBuffer* buffer,
                                        struct ArrowBufferAllocator* allocator);
 
-/// \brief Release an ArrowBuffer
+/// \brief Reset an ArrowBuffer
 ///
 /// Releases the buffer using the allocator's free method if
-/// the buffer's data member is non-null.
-void ArrowBufferRelease(struct ArrowBuffer* buffer);
+/// the buffer's data member is non-null, sets the data member
+/// to NULL, and sets the buffer's size and capacity to 0.
+void ArrowBufferReset(struct ArrowBuffer* buffer);
 
 /// \brief Grow or shrink a buffer to a given capacity
 ArrowErrorCode ArrowBufferResize(struct ArrowBuffer* buffer, int64_t new_capacity_bytes,

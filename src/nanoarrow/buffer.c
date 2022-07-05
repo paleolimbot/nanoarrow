@@ -48,14 +48,15 @@ ArrowErrorCode ArrowBufferSetAllocator(struct ArrowBuffer* buffer,
   }
 }
 
-void ArrowBufferRelease(struct ArrowBuffer* buffer) {
+void ArrowBufferReset(struct ArrowBuffer* buffer) {
   if (buffer->data != NULL) {
     buffer->allocator->free(buffer->allocator, (uint8_t*)buffer->data,
                             buffer->capacity_bytes);
     buffer->data = NULL;
-    buffer->capacity_bytes = 0;
-    buffer->size_bytes = 0;
   }
+
+  buffer->capacity_bytes = 0;
+  buffer->size_bytes = 0;
 }
 
 ArrowErrorCode ArrowBufferResize(struct ArrowBuffer* buffer, int64_t new_capacity_bytes,
@@ -67,7 +68,7 @@ ArrowErrorCode ArrowBufferResize(struct ArrowBuffer* buffer, int64_t new_capacit
 
   buffer->data = buffer->allocator->reallocate(
       buffer->allocator, buffer->data, buffer->capacity_bytes, new_capacity_bytes);
-  if (buffer->data == NULL) {
+  if (buffer->data == NULL && new_capacity_bytes > 0) {
     buffer->capacity_bytes = 0;
     buffer->size_bytes = 0;
     return ENOMEM;
