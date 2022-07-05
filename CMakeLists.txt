@@ -42,6 +42,7 @@ install(DIRECTORY src/ DESTINATION include FILES_MATCHING PATTERN "*.c")
 if (NANOARROW_BUILD_TESTS)
     # For testing we use GTest + Arrow C++ (both need C++11)
     include(FetchContent)
+    include(CTest)
 
     set(CMAKE_CXX_STANDARD 11)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)

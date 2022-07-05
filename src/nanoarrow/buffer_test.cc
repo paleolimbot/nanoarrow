@@ -121,6 +121,8 @@ TEST(BufferTest, BufferTestMove) {
   EXPECT_EQ(buffer.data, nullptr);
   EXPECT_EQ(buffer_out.size_bytes, 7);
   EXPECT_EQ(buffer_out.capacity_bytes, 7);
+
+  ArrowBufferReset(&buffer_out);
 }
 
 TEST(BufferTest, BufferTestResize0) {
@@ -152,10 +154,7 @@ TEST(BufferTest, BufferTestError) {
             ENOMEM);
 
   ASSERT_EQ(ArrowBufferAppend(&buffer, "abcd", 4), NANOARROW_OK);
-  struct ArrowBufferAllocator non_default_allocator;
-  memcpy(&non_default_allocator, ArrowBufferAllocatorDefault(),
-         sizeof(struct ArrowBufferAllocator));
-  buffer.capacity_bytes = std::numeric_limits<int64_t>::max();
+  EXPECT_EQ(ArrowBufferSetAllocator(&buffer, ArrowBufferAllocatorDefault()), EINVAL);
 
-  EXPECT_EQ(ArrowBufferSetAllocator(&buffer, &non_default_allocator), EINVAL);
+  ArrowBufferReset(&buffer);
 }
