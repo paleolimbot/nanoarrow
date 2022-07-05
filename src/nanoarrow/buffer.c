@@ -67,21 +67,23 @@ void ArrowBufferMove(struct ArrowBuffer* buffer, struct ArrowBuffer* buffer_out)
 
 ArrowErrorCode ArrowBufferResize(struct ArrowBuffer* buffer, int64_t new_capacity_bytes,
                                  char shrink_to_fit) {
-  if (buffer->capacity_bytes >= new_capacity_bytes && !shrink_to_fit) {
-    buffer->size_bytes = new_capacity_bytes;
-    return NANOARROW_OK;
+  if (new_capacity_bytes < 0) {
+    return EINVAL;
   }
 
-  buffer->data = buffer->allocator->reallocate(
-      buffer->allocator, buffer->data, buffer->capacity_bytes, new_capacity_bytes);
-  if (buffer->data == NULL && new_capacity_bytes > 0) {
-    buffer->capacity_bytes = 0;
-    buffer->size_bytes = 0;
-    return ENOMEM;
+  if (new_capacity_bytes > buffer->capacity_bytes || shrink_to_fit) {
+    buffer->data = buffer->allocator->reallocate(
+        buffer->allocator, buffer->data, buffer->capacity_bytes, new_capacity_bytes);
+    if (buffer->data == NULL && new_capacity_bytes > 0) {
+      buffer->capacity_bytes = 0;
+      buffer->size_bytes = 0;
+      return ENOMEM;
+    }
+
+    buffer->capacity_bytes = new_capacity_bytes;
   }
 
-  buffer->capacity_bytes = new_capacity_bytes;
-
+  // Ensures that when shrinking that size <= capacity
   if (new_capacity_bytes < buffer->size_bytes) {
     buffer->size_bytes = new_capacity_bytes;
   }

@@ -156,5 +156,7 @@ TEST(BufferTest, BufferTestError) {
   ASSERT_EQ(ArrowBufferAppend(&buffer, "abcd", 4), NANOARROW_OK);
   EXPECT_EQ(ArrowBufferSetAllocator(&buffer, ArrowBufferAllocatorDefault()), EINVAL);
 
+  EXPECT_EQ(ArrowBufferResize(&buffer, -1, false), EINVAL);
+
   ArrowBufferReset(&buffer);
 }
